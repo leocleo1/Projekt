@@ -38,7 +38,23 @@ class StartScene extends Phaser.Scene {
       map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
   
       // Objektlayer "Plattformen" laden
-      const platformObjects = map.getObjectLayer('Object Layer 1').objects;
+      const platformObjects = map.getObjectLayer('Object Layer 2').objects;
+      // Schnee-Zonen (Object Layer "Pulverschnee")
+      const snowZones = map.getObjectLayer('Pulverschnee 1')?.objects || [];
+
+      this.snowAreas = this.physics.add.staticGroup();
+
+      snowZones.forEach(obj => {
+        const snow = this.snowAreas.create(
+          obj.x + obj.width / 2,
+          obj.y + obj.height / 2,
+          null
+        )
+        .setDisplaySize(obj.width, obj.height)
+        .setVisible(false) // Unsichtbar – rein für Kollision
+        .refreshBody();
+        });
+
   
       // Statische Gruppe für Plattformen
       this.platforms = this.physics.add.staticGroup();
@@ -56,11 +72,22 @@ class StartScene extends Phaser.Scene {
       });
   
       // Spieler erstellen
-      this.player = this.physics.add.sprite(100, 100, 'dude');
+      this.player = this.physics.add.sprite(0, 500, 'dude');
       this.player.setCollideWorldBounds(true);
+
+      this.player.setDamping(true);
+      this.player.body.setMaxSpeed(200, 500);
+      this.player.body.setDrag(600,0);
+      this.player.setBounce(0);
   
       // Kollision mit Plattformen aktivieren
       this.physics.add.collider(this.player, this.platforms);
+
+      // Spieler sinkt langsam durch den Schnee
+      this.physics.add.overlap(this.player, this.snowAreas, () => {
+        this.player.setVelocityY(50); // leichtes, langsames Einsinken
+      }, null, this);
+
   
       // Animationen
       this.anims.create({
@@ -92,18 +119,28 @@ class StartScene extends Phaser.Scene {
       const cursors = this.cursors;
   
       if (cursors.left.isDown) {
-        player.setVelocityX(-160);
+        player.body.setAccelerationX(-500);
         player.anims.play('left', true);
       } else if (cursors.right.isDown) {
-        player.setVelocityX(160);
+        player.body.setAccelerationX(500);
         player.anims.play('right', true);
       } else {
-        player.setVelocityX(0);
         player.anims.play('turn');
+
+        // Geschwindigkeit lesen
+        const vx = player.body.velocity.x;
+
+        // Falls noch Bewegung → leicht abbremsen in Bewegungsrichtung
+        if (Math.abs(vx) > 10) {
+          player.setAccelerationX(-Math.sign(vx) * 20); // Nur abbremsen, nicht umdrehen
+        } else {
+          player.setAccelerationX(0);           // Ganz stoppen, wenn langsam genug
+          player.setVelocityX(0);               // Kein Ruckeln beim Stillstand
+        }
       }
   
       if (cursors.up.isDown && player.body.blocked.down) {
-        player.setVelocityY(-330);
+        player.setVelocityY(-600);
       }
     }
   }
@@ -116,7 +153,7 @@ class StartScene extends Phaser.Scene {
     physics: {
       default: 'arcade',
       arcade: {
-        gravity: { y: 500 }, // Schwerkraft aktivieren
+        gravity: { y: 350 }, // Schwerkraft aktivieren
         debug: false
       }
     }
