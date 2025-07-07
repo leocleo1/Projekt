@@ -17,11 +17,11 @@ export class GameOverScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       this.input.keyboard.once('keydown', () => {
-        this.scene.start('MainScene');
+        this.scene.start('JungleLevel');
       });
 
       this.input.once('pointerdown', () => {
-        this.scene.start('MainScene');
+        this.scene.start('JungLevel');
       });
     }
   }
