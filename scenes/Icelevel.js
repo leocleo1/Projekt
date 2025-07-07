@@ -10,7 +10,8 @@ export class Icelevel extends Phaser.Scene {
       this.load.image('item', 'assets/Kompass.png');
       this.load.image('star', 'assets/star.png');
       this.load.image('snowball', 'assets/Schneeball.png');
-      this.load.image('background', 'assets/Eishintergrund.png')
+      this.load.image('background', 'assets/Eishintergrund.png');
+      this.load.image('schalter', 'assets/schalter.png');
       this.load.spritesheet('snowman', 'assets/Schneemann.png', {
         frameWidth:32,
         frameHeight:64
@@ -31,7 +32,12 @@ export class Icelevel extends Phaser.Scene {
       const map = this.make.tilemap({ key: 'map' });
       const tileset = map.addTilesetImage('Eiswelt', 'Eiswelt');
       map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
-  
+
+      this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+      this.eislayer = map.createLayer('Eislayer', tileset, 0, 0);
+      this.eislayer.setCollisionByExclusion([-1]);
+      
       // Objektlayer "Plattformen" laden
       const platformObjects = map.getObjectLayer('Object Layer 2').objects;
       // Schnee-Zonen (Object Layer "Pulverschnee")
@@ -70,7 +76,7 @@ export class Icelevel extends Phaser.Scene {
   
       // Spieler erstellen
       this.player = this.physics.add.sprite(0, 500, 'dude');
-      this.player.setCollideWorldBounds(true);
+
       this.player.setMaxVelocity(200, 500);
       this.player.setDamping(true);
       this.player.body.setDrag(600,0);
@@ -79,9 +85,14 @@ export class Icelevel extends Phaser.Scene {
       // Kollision mit Plattformen aktivieren
       this.physics.add.collider(this.player, this.platforms);
 
+      this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+      this.cameras.main.startFollow(this.player);
+
+
       this.item = this.physics.add.sprite(500, 500, 'item');
       this.physics.add.collider(this.item, this.platforms);
       this.physics.add.overlap(this.player, this.item, this.collectItem, null, this);
+      this.physics.add.collider(this.player, this.eislayer);
 
       this.inSnow = false;
       this.canDoubleJump = false;
@@ -132,7 +143,7 @@ export class Icelevel extends Phaser.Scene {
       this.snowballs = this.physics.add.group();
 
       this.snowman = this.physics.add.sprite(600, 500, 'snowman');
-      this.snowman.anims.play('snowman_walk', true);
+      this.snowman.anims.play('snowman_left', true);
       this.snowman.setCollideWorldBounds(true);
       this.snowmanSpeed = 60;
       this.physics.add.collider(this.snowman, this.platforms);
@@ -176,6 +187,37 @@ export class Icelevel extends Phaser.Scene {
         .setScale(1.5)
         .setAlpha(0.3)
         .setScrollFactor(0);
+
+      this.ammoIcon = this.add.image(this.cameras.main.width - 80, 30, 'star')
+        .setScale(0.8)
+        .setScrollFactor(0);
+
+      this.ammoText = this.add.text(this.cameras.main.width - 60, 18, `: ${this.ammo}`, {
+        fontSize: '24px',
+        fill: '#000000'
+      }).setScrollFactor(0);
+
+      this.schalter = this.physics.add.staticImage(10 + 6, 244 + 6, 'schalter')
+        .setSize(12,12 )
+
+        this.iceBlocks = this.physics.add.staticGroup();
+        this.physics.add.collider(this.player, this.iceBlocks);
+
+        const iceObjects = map.getObjectLayer('Eis')?.objects || [];
+
+        iceObjects.forEach(obj => {
+          const ice = this.iceBlocks.create(
+            obj.x + obj.width / 2,
+            obj.y + obj.height / 2,
+            null
+          )
+
+          .setDisplaySize(obj.width, obj.height)
+          .setVisible(false)
+          .refreshBody();
+        });
+
+       
       
     }
   
@@ -229,67 +271,109 @@ export class Icelevel extends Phaser.Scene {
       
         player.setScale(1, 0.5);
         player.body.setSize(32, 24);
-        player.body.offset.y = 24; // Angenommen 32x48 war die ursprüngliche Größe
-         
-        player.setVelocityX(0);
-        //player.anims.play('turn', true);
+        player.body.offset.y = 24;
+      
+        // Kein neues Laufen mehr beim Ducken, aber aktuelle Geschwindigkeit beibehalten
       }
       
       if (!cursors.down.isDown && this.isDucking) {
-        
-        if(this.canStandUp()) {
+        if (this.canStandUp()) {
           this.isDucking = false;
-      
           player.setScale(1, 1);
           player.body.setSize(32, 48);
           player.body.offset.y = 0;
         }
-        
-        
       }
+      
+      if (!this.isDucking) {
+        if (cursors.left.isDown) {
+          player.body.setAccelerationX(-400);
+          player.flipX = true;
+          player.anims.play('right', true);
+        } else if (cursors.right.isDown) {
+          player.body.setAccelerationX(400);
+          player.flipX = false;
+          player.anims.play('right', true);
+        } else {
+          player.anims.play('turn');
+      
+          const vx = player.body.velocity.x;
+          if (Math.abs(vx) > 10) {
+            player.setAccelerationX(-Math.sign(vx) * 20);
+          } else {
+            player.setAccelerationX(0);
+            player.setVelocityX(0);
+          }
+        }
+      } else {
+        // Wenn geduckt → keine neue Bewegung starten
+        player.setAccelerationX(0);
+        // keine neue Animation starten (optional)
+      }
+      
       
 
 
       if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && this.ammo > 0) {
         this.shoot();
-        this.ammo--;
       }
 
       this.moveSnowmanTowardsPlayer();
 
-      if (this.inSnow && this.player.body.blocked.down) {
-        this.canDoubleJump = true; // Nur im Schnee erlauben
-      }
-      
-      if (this.cursors.up.isDown && this.player.body.blocked.down) {
-        // normaler Sprung
-        const jumpForce = this.inSnow ? -120 : -200;
-        this.player.setVelocityY(jumpForce);
+      const isOnGround = player.body.blocked.down || this.inSnow;
 
+      if (cursors.up.isDown && isOnGround && !this.jumpKeyPressed) {
+        const jumpForce = this.inSnow ? -50 : -250;
+        player.setVelocityY(jumpForce);
+        this.canDoubleJump = this.inSnow;
         this.jumpKeyPressed = true;
       } else if (
-        this.cursors.up.isDown &&
+        cursors.up.isDown &&
         this.canDoubleJump &&
-        !this.player.body.blocked.down &&
+        !isOnGround &&
         !this.jumpKeyPressed
       ) {
-        // Double Jump im Schnee
-        const jumpForce = this.inSnow ? -120 : -200;
-        this.player.setVelocityY(jumpForce);
-
+        const jumpForce = this.inSnow ? -120 : -250;
+        player.setVelocityY(jumpForce);
         this.canDoubleJump = false;
         this.jumpKeyPressed = true;
       }
-      
-      if (!this.cursors.up.isDown) {
+    
+      if (!cursors.up.isDown) {
         this.jumpKeyPressed = false;
       }
       
       this.inSnow = false;
+
+      if (this.player.y > 1000) {
+        this.killPlayer();
+      }
+
+      const minX = this.player.width / 2;
+      const maxX = this.physics.world.bounds.width - this.player.width / 2;
+
+      if (this.player.x < minX) {
+        this.player.x = minX;
+      }
+      if (this.player.x > maxX) {
+        this.player.x = maxX;
+      }
+      
+      this.projectiles.getChildren().forEach(projectile => {
+        const tile = this.eislayer.getTileAtWorldXY(projectile.x, projectile.y);
+
+        if (tile) {
+          this.eislayer.removeTileAt(tile.x, tile.y);
+          projectile.destroy();
+        }
+      })
     }
 
     collectItem(player, item) {
-        const flyIcon = this.add.image(item.x, item.y, 'item').setScale(1);
+        const flyIcon = this.add.image(item.x, item.y, 'item')
+        .setScale(1)
+        .setScrollFactor(0);
+
         item.destroy();
 
         this.tweens.add({
@@ -309,6 +393,7 @@ export class Icelevel extends Phaser.Scene {
         star.destroy();
         this.ammo++;
         console.log(`Sterne gesammelt: ${this.ammo}`);
+        this.updateAmmoDisplay();
       }
   
       shoot() {
@@ -317,6 +402,9 @@ export class Icelevel extends Phaser.Scene {
         projectile.setGravityY(-350);
         projectile.setCollideWorldBounds(true);
         projectile.body.onWorldBounds = true;
+
+        this.ammo--;
+        this.updateAmmoDisplay();
       }
   
       hitBySnowman(player, snowman) {
@@ -443,6 +531,26 @@ export class Icelevel extends Phaser.Scene {
       
         return !blocked;
       }
+
+    killPlayer() {
+      if (!this.player.active) return;
       
-      
+      this.player.setTint(0x000000);
+      this.player.setVelocity(0, 0);
+      this.player.anims.stop();
+      console.log("Spieler ist in den Abgrund gefallen!");
+      this.scene.start('GameOverScene');
     }
+      
+    updateAmmoDisplay() {
+      this.ammoText.setText(`: ${this.ammo}`);
+    }
+    
+    hitIce(projectile, tile) {
+      const tileX = this.eislayer.worldToTileX(projectile.x);
+      const tileY = this.eislayer.worldToTileY(projectile.y);
+
+      this.eislayer.removeTileAt(tileX, tileY);
+      projectile.destroy();
+    }
+  }
