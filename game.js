@@ -5,9 +5,9 @@ import { JungleLevel } from './scenes/JungleLevel.js';
 
 const config = {
   type: Phaser.AUTO,
-  width: 960,
-  height: 640,
-  scene: [StartScene, JungleLevel, GameOverScene],
+  width: window.innerWidth,
+  height: window.innerHeight,
+  scene: [StartScene, JungleLevel, Icelevel, GameOverScene],
   physics: {
     default: 'arcade',
     arcade: {

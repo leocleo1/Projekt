@@ -1,6 +1,6 @@
 export class Icelevel extends Phaser.Scene {
   constructor() {
-    super('MainScene');
+    super('Icelevel');
   }
   
   preload() {
