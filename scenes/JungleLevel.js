@@ -60,10 +60,10 @@ export class JungleLevel extends Phaser.Scene {
 
 
     //Fritz hinzufügen
-    this.fritz = this.physics.add.sprite(600, 200, 'Fritz');
+    this.fritz = this.physics.add.sprite(2500, 200, 'Fritz');
     this.fritz.setCollideWorldBounds(true);
     this.fritz.setBounce(1, 1);
-    this.fritzSpeed = 120;
+    this.fritzSpeed = 100;
 
     this.physics.add.collider(this.player, bodenLayer);
     this.physics.add.collider(this.player, jungleLayer);
@@ -126,6 +126,60 @@ export class JungleLevel extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
+
+
+    // Sterne-Gruppe
+    this.stars = this.physics.add.group();
+
+    // Beispiel-Sterne platzieren (Positionen anpassen!)
+    this.stars.create(300, 100, 'star');
+    this.stars.create(600, 400, 'star');
+    this.stars.create(900, 300, 'star');
+    this.stars.create(500, 100, 'star');
+    this.stars.create(700, 400, 'star');
+    this.stars.create(820, 300, 'star');
+    
+
+    // Collider für Sterne
+    this.physics.add.collider(this.stars, bodenLayer);
+    this.physics.add.collider(this.stars, jungleLayer);
+
+    // Overlap: Spieler sammelt Stern ein
+    this.ammo = 0;
+    this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+
+    // Stern-Counter
+    this.ammoIcon = this.add.image(960 - 80, 30, 'star')
+      .setScale(0.8)
+      .setScrollFactor(0)
+      .setDepth(10);
+
+    this.ammoText = this.add.text(960 - 60, 18, `: ${this.ammo}`, {
+      fontSize: '24px',
+      fill: '#000000'
+    }).setScrollFactor(0)
+      .setDepth(10);
+
+    // Projektile
+    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.projectiles = this.physics.add.group();
+
+
+    this.projectiles.children.each((projectile) => {
+        projectile.body.onWorldBounds = true;
+        });
+        this.physics.world.on('worldbounds', (body) => {
+        if (body.gameObject && body.gameObject.texture.key === 'star') {
+            body.gameObject.destroy();
+        }
+    });
+
+    this.physics.add.overlap(this.projectiles, this.fritz, this.hitFritz, null, this);
+
+    this.physics.add.collider(this.projectiles, bodenLayer, (projectile) => projectile.destroy(), null, this);
+    this.physics.add.collider(this.projectiles, jungleLayer, (projectile) => projectile.destroy(), null, this);
+    this.physics.add.collider(this.projectiles, böseBlumenLayer, (projectile) => projectile.destroy(), null, this);
+
     
     
     
@@ -180,6 +234,7 @@ export class JungleLevel extends Phaser.Scene {
     this.jumpBoostActive = false;
     this.jumpBoostTimer = null;
 
+    
 }
 
 
@@ -198,10 +253,12 @@ export class JungleLevel extends Phaser.Scene {
         player.setVelocityX(-200);
         player.flipX = true;
         player.anims.play('right', true);      // Animation abspielen
+        this.lastShootDir = { x: -1, y: 0 };
       } else if (cursors.right.isDown) {
         player.setVelocityX(200);
         player.flipX = false;
         player.anims.play('right', true);     // Animation abspielen
+        this.lastShootDir = { x: 1, y: 0 };
       } else {
         player.setVelocityX(0);
         player.anims.play('turn');            // Idle-Animation
@@ -220,6 +277,7 @@ export class JungleLevel extends Phaser.Scene {
       player.setVelocityY(jumpVelocity);
       this.jumpKeyPressed = true;
       this.jumpCount++;
+      this.lastShootDir = { x: 0, y: -1 };
     }
     if (!cursors.up.isDown) {
       this.jumpKeyPressed = false;
@@ -298,6 +356,7 @@ export class JungleLevel extends Phaser.Scene {
           this.player.setVelocity(0, 0);
           this.player.anims.stop();
           this.scene.start('GameOverScene');
+          this.registry.set('lastLevel', this.scene.key);
         }
         this.fallStartY = null; // Nach Landung zurücksetzen
       }
@@ -349,7 +408,7 @@ export class JungleLevel extends Phaser.Scene {
     }
 
     // Fritz verfolgt den Spieler
-    if (this.fritz && this.player) {
+    if (this.fritz && this.fritz.body && this.player && this.player.body) {
       const dx = this.player.x - this.fritz.x;
       const dy = this.player.y - this.fritz.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -411,6 +470,10 @@ export class JungleLevel extends Phaser.Scene {
 
       this.fritz.setVelocity(vx, vy);
     }
+
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && this.ammo > 0) {
+      this.shoot();
+    }
   }
 
   updateHealthBar() {
@@ -421,6 +484,7 @@ export class JungleLevel extends Phaser.Scene {
       this.player.setVelocity(0, 0);
       this.player.anims.stop();
       this.scene.start('GameOverScene');
+      this.registry.set('lastLevel', this.scene.key);
     }
   }
 
@@ -440,4 +504,55 @@ export class JungleLevel extends Phaser.Scene {
       }
     });
   }
+
+  collectStar(player, star) {
+    const x = star.x;
+    const y = star.y;
+    star.disableBody(true, true); // Stern verstecken & deaktivieren
+    this.ammo++;
+    this.updateAmmoDisplay();
+
+    // Respawn nach 30 Sekunden
+    this.time.delayedCall(30000, () => {
+      star.enableBody(true, x, y, true, true);
+    });
+  }
+
+  updateAmmoDisplay() {
+    this.ammoText.setText(`: ${this.ammo}`);
+  }
+
+//   shoot() {
+//     const projectile = this.projectiles.create(this.player.x, this.player.y, 'star');
+//     projectile.setVelocityX(this.player.flipX ? -400 : 400);
+//     projectile.setGravityY(-350);
+//     projectile.setCollideWorldBounds(true);
+//     projectile.body.onWorldBounds = true;
+
+//     this.ammo--;
+//     this.updateAmmoDisplay();
+//   }
+    
+  shoot() {
+  const star = this.projectiles.create(this.player.x, this.player.y, 'star');
+  star.setCollideWorldBounds(true);
+  star.body.onWorldBounds = true;
+
+  const dirX = this.lastShootDir?.x || 1;
+  const dirY = this.lastShootDir?.y || 0;
+  const speed = 500;
+
+  star.setVelocity(dirX * speed, dirY * speed);
+
+  this.ammo--;
+  this.ammoText.setText(`: ${this.ammo}`);
+}
+
+   
+  hitFritz(projectile, fritz) {
+  console.log("Overlap!");
+  if (projectile && projectile.active) projectile.destroy();
+  if (fritz && fritz.active) fritz.destroy();
+  console.log("Fritz besiegt!");}
+
 }
