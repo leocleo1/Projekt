@@ -16,12 +16,14 @@ export class GameOverScene extends Phaser.Scene {
         color: '#ffffff'
       }).setOrigin(0.5);
 
+      const lastLevel = this.registry.get('lastLevel') || 'JungleLevel';
+
       this.input.keyboard.once('keydown', () => {
-        this.scene.start('JungleLevel');
+        this.scene.start(lastLevel);
       });
 
       this.input.once('pointerdown', () => {
-        this.scene.start('JungLevel');
+        this.scene.start(lastLevel);
       });
     }
   }

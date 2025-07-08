@@ -652,6 +652,7 @@ export class Icelevel extends Phaser.Scene {
     this.player.setVelocity(0, 0);
     this.player.anims.stop();
     console.log("Spieler ist in den Abgrund gefallen!");
+    this.registry.set('lastLevel', this.scene.key);
     this.scene.start('GameOverScene');
   }
       
