@@ -35,7 +35,8 @@ export class Icelevel extends Phaser.Scene {
       
     const map = this.make.tilemap({ key: 'map' });
     const tileset = map.addTilesetImage('Eiswelt', 'Eiswelt');
-    map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
+    this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
+    this.visualLayer.setDepth(0);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
@@ -153,9 +154,18 @@ export class Icelevel extends Phaser.Scene {
     this.projectiles = this.physics.add.group();
     this.snowballs = this.physics.add.group();
 
-    this.snowman = this.physics.add.sprite(600, 500, 'snowman');
+    this.snowman = this.physics.add.sprite(300, 400, 'snowman');
+    this.snowman.hp = 4;
+
+    this.snowman.healthBarBg = this.add.rectangle(this.snowman.x, this.snowman.y - 40, 34, 6, 0x000000)
+      .setScrollFactor(1)
+      .setDepth(5);
+
+    this.snowman.healthBar = this.add.rectangle(this.snowman.x, this.snowman.y - 40, 30, 4, 0xff0000)
+      .setScrollFactor(1)
+      .setDepth(6);
     this.snowman.anims.play('snowman_left', true);
-    this.snowman.setCollideWorldBounds(true);
+    this.snowman.setCollideWorldBounds(false);
     this.snowmanSpeed = 60;
     this.physics.add.collider(this.snowman, this.platforms);
     this.physics.add.overlap(this.player, this.snowman, this.hitBySnowman, null, this);
@@ -326,6 +336,8 @@ export class Icelevel extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.portals, () => {
       this.nextLevel();
     }, null, this);
+
+    this.snowmanFallen = false;
   }
   
   update() {
@@ -472,6 +484,17 @@ export class Icelevel extends Phaser.Scene {
     });
         
     this.physics.add.overlap(this.projectiles, this.iceBlocks, this.destroyIceBlock, null, this);
+
+    if (!this.snowmanFallen && this.snowman.y > 1000) {
+      this.snowmanFallen = true;
+      this.snowman.destroy();
+      console.log("Schneemann ist gefallen!");
+    }
+    
+    if (this.snowman.active && this.snowman.healthBar) {
+      this.snowman.healthBarBg.setPosition(this.snowman.x, this.snowman.y - 40);
+      this.snowman.healthBar.setPosition(this.snowman.x, this.snowman.y - 40);
+    }
   }
 
   collectItem(player, item) {
@@ -544,9 +567,22 @@ export class Icelevel extends Phaser.Scene {
   }
   
   hitSnowman(projectile, snowman) {
+    projectile.disableBody(true, true);
     projectile.destroy();
-    snowman.destroy();
-    console.log("Schneemann besiegt!");
+
+    snowman.hp--;
+    console.log(snowman.hp);
+    const maxWidth = 30;
+    const currentWidth = Math.max(0, (snowman.hp / 4) * maxWidth);
+    snowman.healthBar.width = currentWidth;
+
+    if (snowman.hp <= 0) {
+      snowman.healthBar.destroy();
+      snowman.healthBarBg.destroy();
+      snowman.destroy();
+      console.log("Schneemann besiegt!");
+    }
+    
   }
   
   updateHealthBar() {
@@ -591,12 +627,32 @@ export class Icelevel extends Phaser.Scene {
   moveSnowmanTowardsPlayer() {
     if (!this.player.active || !this.snowman.active) return;
       
-    const dx = this.player.x - this.snowman.x;
-    const direction = Math.sign(dx);
+    
       
     const blockedLeft = this.snowman.body.blocked.left;
     const blockedRight = this.snowman.body.blocked.right;
     const onGround = this.snowman.body.blocked.down;
+
+    const dx = this.player.x - this.snowman.x;
+    const direction = Math.sign(dx);
+
+    const nextX = this.snowman.x + direction * 16;
+    const nextY = this.snowman.y + 32;
+
+    let isCliff = true;
+
+    this.platforms.getChildren().forEach(platform => {
+      const bounds = platform.getBounds();
+      if (
+        nextX > bounds.left &&
+        nextX < bounds.right &&
+        nextY >= bounds.top &&
+        nextY <= bounds.bottom
+      ) {
+        isCliff = false;
+      }
+    });
+
       
     // Springe bei Hindernis in Bewegungsrichtung
     if (onGround && (
@@ -607,7 +663,7 @@ export class Icelevel extends Phaser.Scene {
     }
       
     // Bewege Schneemann zum Spieler
-    if (Math.abs(dx) > 5) {
+    if (Math.abs(dx) > 5 && !isCliff) {
       this.snowman.setVelocityX(direction * this.snowmanSpeed);
       
       if (direction < 0) {
@@ -725,7 +781,7 @@ export class Icelevel extends Phaser.Scene {
   
   nextLevel() {
     console.log("Portal betreten, nächstes Level wird geladen!");
-    this.scene.start('StartScene');
+    this.scene.start('JungleLevel');
   }
 
 }
