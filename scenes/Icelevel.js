@@ -154,7 +154,9 @@ export class Icelevel extends Phaser.Scene {
     this.projectiles = this.physics.add.group();
     this.snowballs = this.physics.add.group();
 
-    this.snowman = this.physics.add.sprite(300, 400, 'snowman');
+    this.snowmen = this.physics.add.group();
+    this.snowman = this.physics.add.sprite(300, 100, 'snowman');
+    this.snowmen.add(this.snowman);
     this.snowman.hp = 4;
 
     this.snowman.healthBarBg = this.add.rectangle(this.snowman.x, this.snowman.y - 40, 34, 6, 0x000000)
@@ -168,8 +170,8 @@ export class Icelevel extends Phaser.Scene {
     this.snowman.setCollideWorldBounds(false);
     this.snowmanSpeed = 60;
     this.physics.add.collider(this.snowman, this.platforms);
-    this.physics.add.overlap(this.player, this.snowman, this.hitBySnowman, null, this);
-    this.physics.add.overlap(this.projectiles, this.snowman, this.hitSnowman, null, this);
+    this.physics.add.overlap(this.player, this.snowmen, this.hitBySnowman, null, this);
+    this.physics.add.overlap(this.projectiles, this.snowmen, this.hitSnowman, null, this);
 
     this.stars = this.physics.add.group();
 
