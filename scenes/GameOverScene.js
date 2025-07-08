@@ -16,12 +16,16 @@ export class GameOverScene extends Phaser.Scene {
         color: '#ffffff'
       }).setOrigin(0.5);
 
+      console.log("Letzter Level war:", this.registry.get('lastLevel'));
+
+      const lastLevel = this.registry.get('lastLevel');
+
       this.input.keyboard.once('keydown', () => {
-        this.scene.start('JungleLevel');
+        this.scene.start(lastLevel);
       });
 
       this.input.once('pointerdown', () => {
-        this.scene.start('JungLevel');
+        this.scene.start(lastLevel);
       });
     }
   }
