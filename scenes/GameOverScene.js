@@ -16,7 +16,9 @@ export class GameOverScene extends Phaser.Scene {
         color: '#ffffff'
       }).setOrigin(0.5);
 
-      const lastLevel = this.registry.get('lastLevel') || 'JungleLevel';
+      console.log("Letzter Level war:", this.registry.get('lastLevel'));
+
+      const lastLevel = this.registry.get('lastLevel');
 
       this.input.keyboard.once('keydown', () => {
         this.scene.start(lastLevel);
