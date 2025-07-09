@@ -19,10 +19,24 @@ export class JungleLevel extends Phaser.Scene {
     this.load.image('Zauberstab', 'assets/JungleLevel/Zauberstab.png');
     this.load.image('Portal', 'assets/Portal.png');
     this.load.image('Green', 'assets/JungleLevel/Green.png');
+    this.load.audio('jumpSound', 'sounds/Jump.wav');
+    this.load.audio('hitSound', 'sounds/Hit2.wav');
+    this.load.audio('pickupSound', 'sounds/Pickup1.wav');
+    this.load.audio('itemPickupSound', 'sounds/itemPickup.wav');
+    this.load.audio('shootSound', 'sounds/Shoot.wav');
+    this.load.audio('bgMusic', 'sounds/backgroundMusic.wav');
+    this.load.audio('powerupSound', 'sounds/PowerUp.wav');
   }
 
 
   create() {
+    if (!this.sound.get('bgMusic')) {
+      const music = this.sound.add('bgMusic', {
+          loop: true,
+          volume: 0.3
+      });
+      music.play();
+    }
     const green = this.add.image(0, 0, 'Green').setOrigin(0, 0).setScrollFactor(1).setDepth(-5);
     const bg = this.add.image(window.innerWidth / 2 - 480, 0, 'JungleBackground').setOrigin(0, 0).setScrollFactor(1).setDepth(-3);
 
@@ -104,6 +118,7 @@ export class JungleLevel extends Phaser.Scene {
       // Schaden zufügen, aber nur einmal pro Kontakt
       if (!this.player.isOnBöseBlume) {
         this.hp -= 1;
+        this.hitSound.play();
         this.updateHealthBar();
         this.player.isOnBöseBlume = true;
         // Optional: Feedback, z.B. rot färben
@@ -116,6 +131,7 @@ export class JungleLevel extends Phaser.Scene {
     this.physics.add.collider(this.player, guteBlumenLayer, () => {
       if (!this.jumpBoostActive) {
         this.jumpBoostActive = true;
+        this.powerupSound.play();
         this.player.setTint(0x00ff00);
 
         // Health um 10 erhöhen, aber maximal 100
@@ -342,7 +358,12 @@ export class JungleLevel extends Phaser.Scene {
     this.hasZauberstab = false;
     this.hasPotion = false
 
-    
+    this.jumpSound = this.sound.add('jumpSound');
+    this.hitSound = this.sound.add('hitSound');
+    this.pickupSound = this.sound.add('pickupSound');
+    this.itemPickupSound = this.sound.add('itemPickupSound');
+    this.shootSound = this.sound.add('shootSound');
+    this.powerupSound = this.sound.add('powerupSound');
 }
 
 
@@ -385,7 +406,9 @@ export class JungleLevel extends Phaser.Scene {
       player.setVelocityY(jumpVelocity);
       this.jumpKeyPressed = true;
       this.jumpCount++;
+      this.jumpSound.play();
       this.lastShootDir = { x: 0, y: -1 };
+
     }
     if (!cursors.up.isDown) {
       this.jumpKeyPressed = false;
@@ -447,15 +470,18 @@ export class JungleLevel extends Phaser.Scene {
         if (blocks >= 7 && blocks < 9) {
           this.hp -= 10;
           this.updateHealthBar();
+          this.hitSound.play();
           this.player.setTint(0xff0000);
           this.time.delayedCall(200, () => this.player.clearTint());
         } else if (blocks >= 9 && blocks < 15) {
           this.hp -= 20;
           this.updateHealthBar();
+          this.hitSound.play();
           this.player.setTint(0xff0000);
           this.time.delayedCall(200, () => this.player.clearTint());
         } else if (blocks >= 15 && blocks < 20) {
           this.hp -= 50;
+          this.hitSound.play();
           this.updateHealthBar();
         } else if (blocks >= 20) {
           this.hp = 0;
@@ -626,6 +652,7 @@ export class JungleLevel extends Phaser.Scene {
     const y = star.y;
     star.disableBody(true, true); // Stern verstecken & deaktivieren
     this.ammo++;
+    this.pickupSound.play();
     this.updateAmmoDisplay();
 
     // Respawn nach 30 Sekunden
@@ -661,6 +688,7 @@ export class JungleLevel extends Phaser.Scene {
   star.setVelocity(dirX * speed, dirY * speed);
 
   this.ammo--;
+  this.shootSound.play();
   this.ammoText.setText(`: ${this.ammo}`);
 }
 
@@ -716,6 +744,7 @@ export class JungleLevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     zauberstab.destroy();
+    this.itemPickupSound.play();
     this.hasZauberstab = true; // Zauberstab als gesammelt markieren
 
     this.tweens.add({
@@ -738,6 +767,7 @@ export class JungleLevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     potion.destroy();
+    this.itemPickupSound.play();
     this.hasPotion = true; // Potion als gesammelt markieren
 
     this.tweens.add({

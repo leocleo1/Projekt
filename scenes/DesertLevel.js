@@ -89,6 +89,11 @@ export class DesertLevel extends Phaser.Scene {
            .setVisible(false) // Optional
            .refreshBody();
         });
+
+        const blockZones = map.getObjectLayer('StormBlockZone')?.objects || [];
+        this.stormBlockArea = blockZones.map(obj => 
+            new Phaser.Geom.Rectangle(obj.x, obj.y, obj.width, obj.height)
+        );
                 
       
         // Spieler erstellen
@@ -266,6 +271,13 @@ export class DesertLevel extends Phaser.Scene {
         this.itemPickupSound = this.sound.add('itemPickupSound');
         this.shootSound = this.sound.add('shootSound');
 
+        //this.spawnRecurringSandstorm(); // Startet sofort den ersten
+        this.time.addEvent({
+            delay: 30000,
+            loop: true,
+            callback: this.spawnRecurringSandstorm,
+            callbackScope: this
+        });
 
     }
 
@@ -363,10 +375,27 @@ export class DesertLevel extends Phaser.Scene {
         }
         
 
-        if (this.sandstorm && this.sandstorm.active && this.sandstorm.healthBar) {
-            this.sandstorm.healthBarBg.setPosition(this.sandstorm.x, this.sandstorm.y - 40);
-            this.sandstorm.healthBar.setPosition(this.sandstorm.x, this.sandstorm.y - 40);
-        }
+        this.sandstorms.getChildren().forEach(storm => {
+            if (storm.active && storm.healthBar && storm.healthBarBg) {
+                storm.healthBarBg.setPosition(storm.x, storm.y - 30);
+                storm.healthBar.setPosition(storm.x, storm.y - 30);
+            }
+        });
+        
+        
+        this.sandstorms.getChildren().forEach(storm => {
+            if (!storm.active) return;
+            const dx = this.player.body.center.x - storm.body.center.x;
+            const dy = this.player.body.center.y - storm.body.center.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist === 0) return;
+        
+            const speed = storm.isDashing ? this.sandstormDashSpeed : this.sandstormNormalSpeed;
+            const vx = (dx / dist) * speed;
+            const vy = (dy / dist) * speed;
+        
+            storm.setVelocity(vx, vy);
+        });
         
   
 
@@ -451,11 +480,24 @@ export class DesertLevel extends Phaser.Scene {
         const dist = Math.hypot(dx, dy);
       
         if (dist === 0) return;
+
+        const speed = this.sandstormSpeed;
+
+        // Vorschau, wo der Sandsturm als Nächstes wäre
+        const nextX = this.sandstorm.x + (dx / dist) * speed;
+        const nextY = this.sandstorm.y + (dy / dist) * speed;
       
-        const vx = (dx / dist) * this.sandstormSpeed;
-        const vy = (dy / dist) * this.sandstormSpeed;
-      
-        this.sandstorm.setVelocity(vx, vy);
+        const wouldEnterBlockedZone = this.stormBlockArea.some(area =>
+            area.contains(nextX, nextY)
+        );
+    
+        if (wouldEnterBlockedZone) {
+            this.sandstorm.setVelocity(0, 0); // Stoppen oder ausweichen
+        } else {
+            const vx = (dx / dist) * this.sandstormSpeed;
+            const vy = (dy / dist) * this.sandstormSpeed;
+            this.sandstorm.setVelocity(vx, vy);
+        }
     }
       
     hitSandstorm(projectile, sandstorm) {
@@ -604,6 +646,49 @@ export class DesertLevel extends Phaser.Scene {
             this.portalIsActive = true;
         }
     }
+
+    spawnRecurringSandstorm() {
+        const storm = this.physics.add.sprite(200, 500, 'sandstorm');
+        this.sandstorms.add(storm);
+        storm.anims.play('sandstorm_anim');
+        storm.setCollideWorldBounds(true);
+        storm.setBounce(1);
+        this.physics.add.collider(storm, this.platforms);
+        this.physics.add.overlap(this.projectiles, this.sandstorms, this.hitSandstorm, null, this);
+        this.physics.add.collider(this.player, this.sandstorms, this.sandstormHitsPlayer, null, this);
+    
+        storm.lastEscapeDir = null;
+        storm.lastEscapeTimer = 0;
+        this.sandstormNormalSpeed = 100;
+        this.sandstormDashSpeed = 350;
+        this.sandstormSpeed = this.sandstormNormalSpeed;
+        storm.isDashing = false;
+        storm.hp = 4;
+    
+        storm.healthBarBg = this.add.rectangle(storm.x, storm.y - 40, 34, 6, 0x000000)
+            .setScrollFactor(1)
+            .setDepth(5);
+    
+        storm.healthBar = this.add.rectangle(storm.x, storm.y - 40, 30, 4, 0xff0000)
+            .setScrollFactor(1)
+            .setDepth(6);
+    
+        this.time.addEvent({
+            delay: 5000,
+            loop: true,
+            callback: () => {
+                if (!storm.active) return;
+                storm.isDashing = true;
+                this.sandstormSpeed = this.sandstormDashSpeed;
+    
+                this.time.delayedCall(800, () => {
+                    storm.isDashing = false;
+                    this.sandstormSpeed = this.sandstormNormalSpeed;
+                });
+            }
+        });
+    }
+    
     
       
 

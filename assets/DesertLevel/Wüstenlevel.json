@@ -120,6 +120,39 @@
                  "width":28.785261945884,
                  "x":2784.84325116449,
                  "y":479.928821897734
+                }, 
+                {
+                 "height":0,
+                 "id":75,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":208.012950222582,
+                 "y":495.346013759611
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":8,
+         "name":"StormBlockZone",
+         "objects":[
+                {
+                 "height":62.3229461756374,
+                 "id":76,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":63.1323350870096,
+                 "x":2016.99716713881,
+                 "y":513.152569809794
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -590,8 +623,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":8,
- "nextobjectid":74,
+ "nextlayerid":9,
+ "nextobjectid":77,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

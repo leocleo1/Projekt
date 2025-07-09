@@ -388,6 +388,12 @@ export class Icelevel extends Phaser.Scene {
       item: false,
       teddy: false
     };
+
+    this.jumpSound = this.sound.add('jumpSound');
+    this.hitSound = this.sound.add('hitSound');
+    this.pickupSound = this.sound.add('pickupSound');
+    this.itemPickupSound = this.sound.add('itemPickupSound');
+    this.shootSound = this.sound.add('shootSound');
   }
   
   update() {
@@ -430,6 +436,7 @@ export class Icelevel extends Phaser.Scene {
 
     if (!this.inSnow && this.cursors.up.isDown && this.player.body.blocked.down) {
       this.player.setVelocityY(-250); // normaler Sprung
+      this.jumpSound.play();
     }
       
 
@@ -491,6 +498,7 @@ export class Icelevel extends Phaser.Scene {
       player.setVelocityY(jumpForce);
       this.canDoubleJump = this.inSnow;
       this.jumpKeyPressed = true;
+      this.jumpSound.play();
     } else if (
       cursors.up.isDown &&
       this.canDoubleJump &&
@@ -501,6 +509,7 @@ export class Icelevel extends Phaser.Scene {
       player.setVelocityY(jumpForce);
       this.canDoubleJump = false;
       this.jumpKeyPressed = true;
+      this.jumpSound.play();
     }
     
     if (!cursors.up.isDown) {
@@ -553,6 +562,7 @@ export class Icelevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     item.destroy();
+    this.itemPickupSound.play();
 
     this.tweens.add({
       targets: flyIcon,
@@ -576,6 +586,7 @@ export class Icelevel extends Phaser.Scene {
     star.disableBody(true, true); // Verstecken & deaktivieren statt zerstören
     this.ammo++;
     this.updateAmmoDisplay();
+    this.pickupSound.play();
       
     // Respawn nach 30 Sekunden
     this.time.delayedCall(30000, () => {
@@ -593,6 +604,7 @@ export class Icelevel extends Phaser.Scene {
 
     this.ammo--;
     this.updateAmmoDisplay();
+    this.shootSound.play();
   }
   
   hitBySnowman(player, snowman) {
@@ -600,6 +612,7 @@ export class Icelevel extends Phaser.Scene {
       this.hp -= 20;
       this.updateHealthBar();
       console.log(`Leben: ${this.hp}`);
+      this.hitSound.play();
   
       player.setVelocityX(snowman.x > player.x ? -200: 200);
   
@@ -660,6 +673,7 @@ export class Icelevel extends Phaser.Scene {
       this.hp -= 20;
       this.updateHealthBar();
       console.log(`Leben: ${this.hp}`);
+      this.hitSound.play();
 
       this.invulnerable = true;
       this.time.delayedCall(1000, () => {
@@ -799,6 +813,7 @@ export class Icelevel extends Phaser.Scene {
       this.hp -= 20;
       this.updateHealthBar();
       console.log("Du hast einen Eiszapfen berührt!");
+      this.hitSound.play();
 
       this.invulnerable = true;
       this.time.delayedCall(1000, () => {
@@ -817,6 +832,7 @@ export class Icelevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     teddy.destroy();
+    this.itemPickupSound.play();
 
     this.tweens.add({
       targets: flyIcon,
