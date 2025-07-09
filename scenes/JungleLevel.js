@@ -76,7 +76,7 @@ export class JungleLevel extends Phaser.Scene {
 
     // Spieler erstellen
     //this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
-    this.player = this.physics.add.sprite(100, 3100, 'dude');
+    this.player = this.physics.add.sprite(100, 3120, 'dude');
     //his.player = this.physics.add.sprite(850, 100, 'dude');
 
     this.player.setMaxVelocity(200, 500);
@@ -749,7 +749,7 @@ export class JungleLevel extends Phaser.Scene {
 
     this.tweens.add({
       targets: flyIcon,
-      x: offsetX + 220,
+      x:  window.innerWidth / 2 - 480 + 220,
       y: 32,
       scale: 1.5,
       duration: 500,
@@ -772,7 +772,7 @@ export class JungleLevel extends Phaser.Scene {
 
     this.tweens.add({
       targets: flyIcon,
-      x: offsetX + 260,
+      x: window.innerWidth / 2 - 480 + 260,
       y: 32,
       scale: 1.5,
       duration: 500,
