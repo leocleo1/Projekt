@@ -4,23 +4,23 @@ export class Icelevel extends Phaser.Scene {
   }
   
   preload() {
-    this.load.image('Eiswelt', 'assets/Eiswelt.png');
-    this.load.tilemapTiledJSON('map', 'assets/Eislevel.json');
+    this.load.image('Eiswelt', 'assets/IceLevel/Eiswelt.png');
+    this.load.tilemapTiledJSON('map', 'assets/IceLevel/Eislevel.json');
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
-    this.load.image('item', 'assets/Kompass.png');
+    this.load.image('item', 'assets/IceLevel/Kompass.png');
     this.load.image('star', 'assets/star.png');
-    this.load.image('snowball', 'assets/Schneeball.png');
-    this.load.image('background', 'assets/Eishintergrund.png');
-    this.load.image('schalter', 'assets/schalter.png');
-    this.load.spritesheet('snowman', 'assets/Schneemann.png', {
+    this.load.image('snowball', 'assets/IceLevel/Schneeball.png');
+    this.load.image('background', 'assets/IceLevel/Eishintergrund.png');
+    this.load.image('schalter', 'assets/IceLevel/schalter.png');
+    this.load.spritesheet('snowman', 'assets/IceLevel/Schneemann.png', {
       frameWidth:32,
       frameHeight:64
     });
-    this.load.spritesheet('eistor', 'assets/eistor.png', {
+    this.load.spritesheet('eistor', 'assets/IceLevel/eistor.png', {
       frameWidth: 32,
       frameHeight: 96
     });
-    this.load.image('teddy', 'assets/Teddy.png')
+    this.load.image('teddy', 'assets/IceLevel/Teddy.png')
   }
   
   create() {
@@ -621,6 +621,7 @@ export class Icelevel extends Phaser.Scene {
         this.player.setVelocity(0, 0);
         this.player.anims.stop();
         console.log("Spieler besiegt!");
+        this.registry.set('lastLevel', this.scene.key);
         this.scene.start('GameOverScene');
       }
     }
