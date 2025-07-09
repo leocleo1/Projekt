@@ -18,10 +18,12 @@ export class JungleLevel extends Phaser.Scene {
     this.load.image('Potion', 'assets/JungleLevel/Potion.png');
     this.load.image('Zauberstab', 'assets/JungleLevel/Zauberstab.png');
     this.load.image('Portal', 'assets/Portal.png');
+    this.load.image('Green', 'assets/JungleLevel/Green.png');
   }
 
 
   create() {
+    const green = this.add.image(0, 0, 'Green').setOrigin(0, 0).setScrollFactor(1).setDepth(-5);
     const bg = this.add.image(window.innerWidth / 2 - 480, 0, 'JungleBackground').setOrigin(0, 0).setScrollFactor(1).setDepth(-3);
 
     // Bildschirmgröße
@@ -39,7 +41,7 @@ export class JungleLevel extends Phaser.Scene {
 
     const bodenLayer = map.createLayer('Boden', bodenTiles, window.innerWidth / 2 - 480, 0);
     const jungleLayer = map.createLayer('JungleTiles', jungleTiles, window.innerWidth / 2- 480, 0);
-    const böseBlumenLayer = map.createLayer('BöseBlumen', jungleTiles, window.innerWidth / 2- 480, 0);
+    const böseBlumenLayer = map.createLayer('BöseBlumen', jungleTiles, window.innerWidth / 2- 480, 0).setDepth(1);
     const guteBlumenLayer = map.createLayer('GuteBlumen', jungleTiles, window.innerWidth / 2 - 480, 0);
     const starLayer = map.createLayer('Stars', starTiles, window.innerWidth / 2 - 480, 0);
     const dekoLayer = map.createLayer('Deko', jungleTiles, window.innerWidth / 2 - 480, 0);
