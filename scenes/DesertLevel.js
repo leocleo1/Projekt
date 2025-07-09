@@ -308,7 +308,7 @@ export class DesertLevel extends Phaser.Scene {
         // Springen
         if (cursors.up.isDown && this.player.body.blocked.down) {
             this.player.setVelocityY(-260);
-            this.jumpSound.play();
+            
         }
   
         // Ducken
