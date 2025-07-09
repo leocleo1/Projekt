@@ -15,6 +15,8 @@ export class JungleLevel extends Phaser.Scene {
 
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
     this.load.image('star', 'assets/star.png');
+    this.load.image('Potion', 'assets/JungleLevel/Potion.png');
+    this.load.image('Zauberstab', 'assets/JungleLevel/Zauberstab.png');
   }
 
 
@@ -32,11 +34,14 @@ export class JungleLevel extends Phaser.Scene {
 
     const jungleTiles = map.addTilesetImage('JungleTiles', 'JungleTiles');
     const bodenTiles = map.addTilesetImage('Boden', 'Boden');
+    const starTiles = map.addTilesetImage('Stars', 'star');
 
     const bodenLayer = map.createLayer('Boden', bodenTiles, 0, 0);
     const jungleLayer = map.createLayer('JungleTiles', jungleTiles, 0, 0);
     const böseBlumenLayer = map.createLayer('BöseBlumen', jungleTiles, 0, 0);
     const guteBlumenLayer = map.createLayer('GuteBlumen', jungleTiles, 0, 0);
+    const starLayer = map.createLayer('Stars', starTiles, 0, 0);
+    const dekoLayer = map.createLayer('Deko', jungleTiles, 0, 0);
 
  
     // Kollisionsebenen
@@ -50,7 +55,8 @@ export class JungleLevel extends Phaser.Scene {
 
 
     // Spieler erstellen
-    this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
+    //this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
+    this.player = this.physics.add.sprite(100, 3100, 'dude');
 
     this.player.setMaxVelocity(200, 500);
     this.player.setDamping(true);
@@ -59,11 +65,31 @@ export class JungleLevel extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
 
 
+
     //Fritz hinzufügen
-    this.fritz = this.physics.add.sprite(2500, 200, 'Fritz');
+    this.fritz = this.physics.add.sprite(500, 200, 'Fritz');
     this.fritz.setCollideWorldBounds(true);
     this.fritz.setBounce(1, 1);
     this.fritzSpeed = 100;
+
+    // // Health für Fritz
+    // this.fritz.hp = 3;
+    
+
+    // // Healthbar für Fritz
+    // this.fritz.healthBarBg = this.add.rectangle(this.fritz.x, this.fritz.y - 40, 34, 6, 0x000000)
+    //     .setScrollFactor(1)
+    //     .setDepth(5);
+
+    // this.fritz.healthBar = this.add.rectangle(this.fritz.x, this.fritz.y - 40, 30, 4, 0xff0000)
+    //     .setScrollFactor(1)
+    //     .setDepth(6);
+
+    // const maxWidth = 30;
+    // const currentWidth = Math.max(0, (this.fritz.hp / 3) * maxWidth);
+    // this.fritz.healthBar.width = currentWidth;
+
+
 
     this.physics.add.collider(this.player, bodenLayer);
     this.physics.add.collider(this.player, jungleLayer);
@@ -84,6 +110,11 @@ export class JungleLevel extends Phaser.Scene {
       if (!this.jumpBoostActive) {
         this.jumpBoostActive = true;
         this.player.setTint(0x00ff00);
+
+        // Health um 10 erhöhen, aber maximal 100
+        this.hp = Math.min(this.hp + 10, 100);
+        this.updateHealthBar();
+
         // Timer für 1 Sekunde Boost
         if (this.jumpBoostTimer) this.jumpBoostTimer.remove();
         this.jumpBoostTimer = this.time.delayedCall(1000, () => {
@@ -128,25 +159,7 @@ export class JungleLevel extends Phaser.Scene {
 
 
 
-    // Sterne-Gruppe
-    this.stars = this.physics.add.group();
-
-    // Beispiel-Sterne platzieren (Positionen anpassen!)
-    this.stars.create(300, 100, 'star');
-    this.stars.create(600, 400, 'star');
-    this.stars.create(900, 300, 'star');
-    this.stars.create(500, 100, 'star');
-    this.stars.create(700, 400, 'star');
-    this.stars.create(820, 300, 'star');
-    
-
-    // Collider für Sterne
-    this.physics.add.collider(this.stars, bodenLayer);
-    this.physics.add.collider(this.stars, jungleLayer);
-
-    // Overlap: Spieler sammelt Stern ein
-    this.ammo = 0;
-    this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+    this.ammo = 0; // Anzahl der verfügbaren Schüsse
 
     // Stern-Counter
     this.ammoIcon = this.add.image(960 - 80, 30, 'star')
@@ -181,7 +194,52 @@ export class JungleLevel extends Phaser.Scene {
     this.physics.add.collider(this.projectiles, böseBlumenLayer, (projectile) => projectile.destroy(), null, this);
 
     
+    // Gruppe für einsammelbare Sterne
+    this.stars = this.physics.add.group();
+
+    // Alle Tiles im Star-Layer durchgehen
+    starLayer.forEachTile(tile => {
+      if (tile.index !== -1) {
+        // Weltkoordinaten berechnen
+        const worldX = tile.getCenterX();
+        const worldY = tile.getCenterY();
+        // Physics-Stern erzeugen
+        const star = this.stars.create(worldX, worldY, 'star');
+        star.body.allowGravity = false;
+        star.setImmovable(true);
+        // Tile entfernen
+        starLayer.removeTileAt(tile.x, tile.y);
+      }
+    });
+
+    // Nach dem Umwandeln der Tiles in Sterne:
+    this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+
+
+    //Zauberstab
+    this.zauberstab = this.physics.add.sprite(400, 2020, 'Zauberstab');
+    this.physics.add.collider(this.zauberstab, jungleLayer);
+    this.physics.add.collider(this.zauberstab, bodenLayer);
+    this.physics.add.overlap(this.player, this.zauberstab, this.collectZauberstab, null, this);
+    this.zauberstab.setDepth(0);
+
+    this.zauberstabSlot = this.add.image(220, 32, 'Zauberstab')
+      .setScale(1.5)
+      .setAlpha(0.3)
+      .setScrollFactor(0);
+
     
+    // Potion
+    this.potion = this.physics.add.sprite(595, 1400, 'Potion');
+    this.physics.add.collider(this.potion, jungleLayer);
+    this.physics.add.collider(this.potion, bodenLayer);
+    this.physics.add.overlap(this.player, this.potion, this.collectPotion, null, this);
+    this.potion.setDepth(0);
+    
+    this.potionSlot = this.add.image(260, 32, 'Potion')
+      .setScale(1.5)
+      .setAlpha(0.5)
+      .setScrollFactor(0);
     
     // Animationen für den Spieler
     this.anims.create({
@@ -215,7 +273,8 @@ export class JungleLevel extends Phaser.Scene {
 
     // Beispiel-Spieler
     
-    this.cameras.main.startFollow(this.player);this.cameras.main.scrollY = map.heightInPixels - this.cameras.main.height;
+    this.cameras.main.startFollow(this.player);
+    //this.cameras.main.scrollY = map.heightInPixels - this.cameras.main.height;
 
     // Eingaben initialisieren
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -271,7 +330,7 @@ export class JungleLevel extends Phaser.Scene {
     // Springen & Double Jump
 
     // Beim Springen & Double Jump:
-    const jumpVelocity = this.jumpBoostActive ? -400 : -250; // Boost: höherer Sprung
+    const jumpVelocity = this.jumpBoostActive ? -400 : -230; // Boost: höherer Sprung
 
     if (cursors.up.isDown && !this.jumpKeyPressed && this.jumpCount < this.maxJumps) {
       player.setVelocityY(jumpVelocity);
@@ -360,6 +419,11 @@ export class JungleLevel extends Phaser.Scene {
         }
         this.fallStartY = null; // Nach Landung zurücksetzen
       }
+
+      if (this.fritz && this.fritz.active && this.fritz.healthBar) {
+        this.fritz.healthBarBg.setPosition(this.fritz.x, this.fritz.y - 40);
+        this.fritz.healthBar.setPosition(this.fritz.x, this.fritz.y - 40);
+        }
     }
 
 
@@ -407,68 +471,71 @@ export class JungleLevel extends Phaser.Scene {
       this.player.isOnBöseBlume = false;
     }
 
+    
+
     // Fritz verfolgt den Spieler
-    if (this.fritz && this.fritz.body && this.player && this.player.body) {
+    if (this.fritz && this.fritz.body && this.fritz.active && this.player && this.player.body) {
       const dx = this.player.x - this.fritz.x;
       const dy = this.player.y - this.fritz.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       const minDist = 64; // 2 Blöcke Abstand
+
+      // Nur Bewegung stoppen, nicht den ganzen Block returnen!
       if (dist < minDist) {
         this.fritz.setVelocity(0, 0);
-        return;
-      }
-
-      let vx, vy;
-      const body = this.fritz.body;
-
-      // Wenn Fritz aktuell ausweicht, bleibe in dieser Richtung bis Timer abgelaufen
-      if (this.fritz.lastEscapeDir && this.fritz.lastEscapeTimer > this.time.now) {
-        switch (this.fritz.lastEscapeDir) {
-          case 'right': vx = this.fritzSpeed; vy = 0; break;
-          case 'left': vx = -this.fritzSpeed; vy = 0; break;
-          case 'down': vx = 0; vy = this.fritzSpeed; break;
-          case 'up': vx = 0; vy = -this.fritzSpeed; break;
-          default: vx = 0; vy = 0;
-        }
       } else {
-        // Prüfe, ob Fritz blockiert ist
-        if ((body.blocked.up || body.blocked.down) && !(body.blocked.left || body.blocked.right)) {
-          // Horizontal ausweichen
-          vy = 0;
-          vx = dx === 0 ? 0 : (dx / Math.abs(dx)) * this.fritzSpeed;
-          this.fritz.lastEscapeDir = vx > 0 ? 'right' : 'left';
-          this.fritz.lastEscapeTimer = this.time.now + 3000; // 3 Sekunden
-        } else if ((body.blocked.left || body.blocked.right) && !(body.blocked.up || body.blocked.down)) {
-          // Vertikal ausweichen
-          vx = 0;
-          vy = dy === 0 ? 0 : (dy / Math.abs(dy)) * this.fritzSpeed;
-          this.fritz.lastEscapeDir = vy > 0 ? 'down' : 'up';
-          this.fritz.lastEscapeTimer = this.time.now + 3000;
-        } else if ((body.blocked.left || body.blocked.right) && (body.blocked.up || body.blocked.down)) {
-          // Komplett eingeklemmt: wähle eine zufällige freie Richtung
-          if (!body.blocked.right) {
-            vx = this.fritzSpeed; vy = 0; this.fritz.lastEscapeDir = 'right';
-          } else if (!body.blocked.left) {
-            vx = -this.fritzSpeed; vy = 0; this.fritz.lastEscapeDir = 'left';
-          } else if (!body.blocked.down) {
-            vx = 0; vy = this.fritzSpeed; this.fritz.lastEscapeDir = 'down';
-          } else if (!body.blocked.up) {
-            vx = 0; vy = -this.fritzSpeed; this.fritz.lastEscapeDir = 'up';
-          } else {
-            vx = 0; vy = 0; this.fritz.lastEscapeDir = null;
-          }
-          this.fritz.lastEscapeTimer = this.time.now + 3000;
-        } else {
-          // Nicht blockiert: folge dem Spieler
-          vx = (dx / dist) * this.fritzSpeed;
-          vy = (dy / dist) * this.fritzSpeed;
-          this.fritz.lastEscapeDir = null;
-          this.fritz.lastEscapeTimer = 0;
-        }
-      }
+        let vx, vy;
+        const body = this.fritz.body;
 
-      this.fritz.setVelocity(vx, vy);
+        // Wenn Fritz aktuell ausweicht, bleibe in dieser Richtung bis Timer abgelaufen
+        if (this.fritz.lastEscapeDir && this.fritz.lastEscapeTimer > this.time.now) {
+          switch (this.fritz.lastEscapeDir) {
+            case 'right': vx = this.fritzSpeed; vy = 0; break;
+            case 'left': vx = -this.fritzSpeed; vy = 0; break;
+            case 'down': vx = 0; vy = this.fritzSpeed; break;
+            case 'up': vx = 0; vy = -this.fritzSpeed; break;
+            default: vx = 0; vy = 0;
+          }
+        } else {
+          // Prüfe, ob Fritz blockiert ist
+          if ((body.blocked.up || body.blocked.down) && !(body.blocked.left || body.blocked.right)) {
+            // Horizontal ausweichen
+            vy = 0;
+            vx = dx === 0 ? 0 : (dx / Math.abs(dx)) * this.fritzSpeed;
+            this.fritz.lastEscapeDir = vx > 0 ? 'right' : 'left';
+            this.fritz.lastEscapeTimer = this.time.now + 3000; // 3 Sekunden
+          } else if ((body.blocked.left || body.blocked.right) && !(body.blocked.up || body.blocked.down)) {
+            // Vertikal ausweichen
+            vx = 0;
+            vy = dy === 0 ? 0 : (dy / Math.abs(dy)) * this.fritzSpeed;
+            this.fritz.lastEscapeDir = vy > 0 ? 'down' : 'up';
+            this.fritz.lastEscapeTimer = this.time.now + 3000;
+          } else if ((body.blocked.left || body.blocked.right) && (body.blocked.up || body.blocked.down)) {
+            // Komplett eingeklemmt: wähle eine zufällige freie Richtung
+            if (!body.blocked.right) {
+              vx = this.fritzSpeed; vy = 0; this.fritz.lastEscapeDir = 'right';
+            } else if (!body.blocked.left) {
+              vx = -this.fritzSpeed; vy = 0; this.fritz.lastEscapeDir = 'left';
+            } else if (!body.blocked.down) {
+              vx = 0; vy = this.fritzSpeed; this.fritz.lastEscapeDir = 'down';
+            } else if (!body.blocked.up) {
+              vx = 0; vy = -this.fritzSpeed; this.fritz.lastEscapeDir = 'up';
+            } else {
+              vx = 0; vy = 0; this.fritz.lastEscapeDir = null;
+            }
+            this.fritz.lastEscapeTimer = this.time.now + 3000;
+          } else {
+            // Nicht blockiert: folge dem Spieler
+            vx = (dx / dist) * this.fritzSpeed;
+            vy = (dy / dist) * this.fritzSpeed;
+            this.fritz.lastEscapeDir = null;
+            this.fritz.lastEscapeTimer = 0;
+          }
+        }
+
+        this.fritz.setVelocity(vx, vy);
+      }
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && this.ammo > 0) {
@@ -549,10 +616,91 @@ export class JungleLevel extends Phaser.Scene {
 }
 
    
-  hitFritz(projectile, fritz) {
-  console.log("Overlap!");
-  if (projectile && projectile.active) projectile.destroy();
-  if (fritz && fritz.active) fritz.destroy();
-  console.log("Fritz besiegt!");}
+// hitFritz(projectile, fritz) {
+//   projectile.destroy();
+//     fritz.hp--;
+//   // Healthbar anpassen
+//   const maxWidth = 30;
+//   const currentWidth = Math.max(0, (fritz.hp / 3) * maxWidth);
+//   fritz.healthBar.width = currentWidth;
+
+//   if (fritz.hp <= 0) {
+//     if (fritz.healthBar) fritz.healthBar.destroy();
+//     if (fritz.healthBarBg) fritz.healthBarBg.destroy();
+//     fritz.destroy();
+//   }
+
+// }
+
+ hitFritz(projectile, fritz) {
+    projectile.destroy();
+  fritz.destroy();
+
+    // projectile.disableBody(true, true);
+    // projectile.destroy();
+
+    // fritz.hp--;
+    // console.log(fritz.hp);
+    // const maxWidth = 30;
+    // const currentWidth = Math.max(0, (fritz.hp / 3) * maxWidth);
+    // fritz.healthBar.width = currentWidth;
+
+    // if (fritz.healthBar) {
+    //     fritz.healthBar.width = currentWidth;
+    // }
+
+    // if (fritz.hp <= 0) {
+    //     if (fritz.healthBar) fritz.healthBar.destroy();
+    //     if (fritz.healthBarBg) fritz.healthBarBg.destroy();
+    //     fritz.destroy();
+    //     this.fritz = null;
+    //     console.log("Fritz besiegt!");
+    // }
+  }
+
+
+
+
+ collectZauberstab(player, zauberstab) {
+    const flyIcon = this.add.image(zauberstab.x, zauberstab.y, 'Zauberstab')
+      .setScale(1)
+      .setScrollFactor(0);
+
+    zauberstab.destroy();
+
+    this.tweens.add({
+      targets: flyIcon,
+      x: 220,
+      y: 32,
+      scale: 1.5,
+      duration: 500,
+      onComplete: () => {
+        flyIcon.setAlpha(1);
+      }
+    });
+
+    console.log("Du hast den Zauberstab gefunden!");
+  }
+
+  collectPotion(player, potion) {
+    const flyIcon = this.add.image(potion.x, potion.y, 'Potion')
+      .setScale(1)
+      .setScrollFactor(0);
+
+    potion.destroy();
+
+    this.tweens.add({
+      targets: flyIcon,
+      x: 260,
+      y: 32,
+      scale: 1.5,
+      duration: 500,
+      onComplete: () => {
+        flyIcon.setAlpha(1);
+      }
+    });
+
+    console.log("Du hast den Zauberstab gefunden!");
+  }
 
 }
