@@ -33,7 +33,7 @@ export class JungleLevel extends Phaser.Scene {
     if (!this.sound.get('bgMusic')) {
       const music = this.sound.add('bgMusic', {
           loop: true,
-          volume: 0.3
+          volume: 0.1
       });
       music.play();
     }
@@ -361,7 +361,7 @@ export class JungleLevel extends Phaser.Scene {
     this.jumpSound = this.sound.add('jumpSound');
     this.hitSound = this.sound.add('hitSound');
     this.pickupSound = this.sound.add('pickupSound');
-    this.itemPickupSound = this.sound.add('itemPickupSound');
+    this.itemPickupSound = this.sound.add('itemPickupSound', { volume: 0.3 });
     this.shootSound = this.sound.add('shootSound');
     this.powerupSound = this.sound.add('powerupSound');
 }
@@ -406,7 +406,6 @@ export class JungleLevel extends Phaser.Scene {
       player.setVelocityY(jumpVelocity);
       this.jumpKeyPressed = true;
       this.jumpCount++;
-      this.jumpSound.play();
       this.lastShootDir = { x: 0, y: -1 };
 
     }

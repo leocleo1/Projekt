@@ -28,7 +28,7 @@ export class DesertLevel extends Phaser.Scene {
         if (!this.sound.get('bgMusic')) {
             const music = this.sound.add('bgMusic', {
                 loop: true,
-                volume: 0.3
+                volume: 0.1
             });
             music.play();
         }
@@ -152,6 +152,21 @@ export class DesertLevel extends Phaser.Scene {
         this.stars.create(1220, 786, 'star');
         this.stars.create(1246, 786, 'star');
         this.stars.create(1272, 786, 'star');
+        this.stars.create(1969, 467, 'star');
+        this.stars.create(1937, 467, 'star');
+        this.stars.create(1824, 401, 'star');
+        this.stars.create(1697, 369, 'star');
+        this.stars.create(1376, 341, 'star');
+        this.stars.create(1042, 338, 'star');
+        this.stars.create(751, 305, 'star');
+        this.stars.create(720, 305, 'star');
+        this.stars.create(495, 272, 'star');
+        this.stars.create(465, 272, 'star');
+        this.stars.create(334, 143, 'star');
+        this.stars.create(467, 145, 'star');
+        this.stars.create(624, 143, 'star');
+        this.stars.create(561, 144, 'star');
+
         
 
       
@@ -268,10 +283,10 @@ export class DesertLevel extends Phaser.Scene {
         this.jumpSound = this.sound.add('jumpSound');
         this.hitSound = this.sound.add('hitSound');
         this.pickupSound = this.sound.add('pickupSound');
-        this.itemPickupSound = this.sound.add('itemPickupSound');
+        this.itemPickupSound = this.sound.add('itemPickupSound', { volume: 0.3 });
         this.shootSound = this.sound.add('shootSound');
 
-        //this.spawnRecurringSandstorm(); // Startet sofort den ersten
+        this.spawnRecurringSandstorm(); // Startet sofort den ersten
         this.time.addEvent({
             delay: 30000,
             loop: true,
@@ -694,7 +709,7 @@ export class DesertLevel extends Phaser.Scene {
 
     nextLevel() {
         console.log("Portal betreten, nächstes Level wird geladen!");
-        this.scene.start('Icelevel');
+        this.scene.start('Map2');
         
     }
 }    

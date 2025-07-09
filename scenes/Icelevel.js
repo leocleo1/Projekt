@@ -34,7 +34,7 @@ export class Icelevel extends Phaser.Scene {
     if (!this.sound.get('bgMusic')) {
       const music = this.sound.add('bgMusic', {
           loop: true,
-          volume: 0.3
+          volume: 0.1
       });
       music.play();
     }
@@ -175,7 +175,7 @@ export class Icelevel extends Phaser.Scene {
     this.snowballs = this.physics.add.group();
 
     this.snowmen = this.physics.add.group();
-    this.snowman = this.physics.add.sprite(300, 100, 'snowman');
+    this.snowman = this.physics.add.sprite(950, 130, 'snowman');
     this.snowmen.add(this.snowman);
     this.snowman.hp = 4;
 
@@ -205,6 +205,8 @@ export class Icelevel extends Phaser.Scene {
     this.stars.create(1063, 310, 'star');
     this.stars.create(1055, 531, 'star');
     this.stars.create(1295, 594, 'star');
+    this.stars.create(528, 275, 'star');
+    this.stars.create(433, 339, 'star');
 
       
     this.physics.add.collider(this.stars, this.platforms);
@@ -392,7 +394,7 @@ export class Icelevel extends Phaser.Scene {
     this.jumpSound = this.sound.add('jumpSound');
     this.hitSound = this.sound.add('hitSound');
     this.pickupSound = this.sound.add('pickupSound');
-    this.itemPickupSound = this.sound.add('itemPickupSound');
+    this.itemPickupSound = this.sound.add('itemPickupSound', { volume: 0.3 });
     this.shootSound = this.sound.add('shootSound');
   }
   
@@ -436,7 +438,6 @@ export class Icelevel extends Phaser.Scene {
 
     if (!this.inSnow && this.cursors.up.isDown && this.player.body.blocked.down) {
       this.player.setVelocityY(-250); // normaler Sprung
-      this.jumpSound.play();
     }
       
 
@@ -498,7 +499,6 @@ export class Icelevel extends Phaser.Scene {
       player.setVelocityY(jumpForce);
       this.canDoubleJump = this.inSnow;
       this.jumpKeyPressed = true;
-      this.jumpSound.play();
     } else if (
       cursors.up.isDown &&
       this.canDoubleJump &&
@@ -509,7 +509,6 @@ export class Icelevel extends Phaser.Scene {
       player.setVelocityY(jumpForce);
       this.canDoubleJump = false;
       this.jumpKeyPressed = true;
-      this.jumpSound.play();
     }
     
     if (!cursors.up.isDown) {
@@ -589,7 +588,7 @@ export class Icelevel extends Phaser.Scene {
     this.pickupSound.play();
       
     // Respawn nach 30 Sekunden
-    this.time.delayedCall(30000, () => {
+    this.time.delayedCall(10000, () => {
       star.enableBody(true, x, y, true, true);
     });
   }
@@ -670,7 +669,7 @@ export class Icelevel extends Phaser.Scene {
     snowball.destroy();
 
     if (!this.invulnerable) {
-      this.hp -= 20;
+      this.hp -= 10;
       this.updateHealthBar();
       console.log(`Leben: ${this.hp}`);
       this.hitSound.play();
@@ -860,7 +859,7 @@ export class Icelevel extends Phaser.Scene {
   
   nextLevel() {
     console.log("Portal betreten, nächstes Level wird geladen!");
-    this.scene.start('JungleLevel');
+    this.scene.start('Map3');
   }
 
 }
