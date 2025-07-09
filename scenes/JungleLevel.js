@@ -63,7 +63,7 @@ export class JungleLevel extends Phaser.Scene {
     // Spieler erstellen
     //this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
     this.player = this.physics.add.sprite(100, 3100, 'dude');
-    //this.player = this.physics.add.sprite(850, 100, 'dude');
+    //his.player = this.physics.add.sprite(850, 100, 'dude');
 
     this.player.setMaxVelocity(200, 500);
     this.player.setDamping(true);
@@ -271,7 +271,7 @@ export class JungleLevel extends Phaser.Scene {
 
     portalObjects.forEach(obj => {
       const portal = this.portals.create(
-        obj.x + obj.width / 2,
+        obj.x + obj.width / 2 + offsetX,
         obj.y + obj.height / 2,
         null
       )
@@ -281,6 +281,9 @@ export class JungleLevel extends Phaser.Scene {
     });
 
     this.physics.add.overlap(this.player, this.portals, () => {
+      if (this.hasZauberstab && this.hasPotion) {
+        this.nextLevel();
+      }
       this.nextLevel();
     }, null, this);
 
@@ -336,6 +339,8 @@ export class JungleLevel extends Phaser.Scene {
     this.lastDangerTile = null;
     this.jumpBoostActive = false;
     this.jumpBoostTimer = null;
+    this.hasZauberstab = false;
+    this.hasPotion = false
 
     
 }
@@ -711,10 +716,11 @@ export class JungleLevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     zauberstab.destroy();
+    this.hasZauberstab = true; // Zauberstab als gesammelt markieren
 
     this.tweens.add({
       targets: flyIcon,
-      x: 220,
+      x: offsetX + 220,
       y: 32,
       scale: 1.5,
       duration: 500,
@@ -732,10 +738,11 @@ export class JungleLevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     potion.destroy();
+    this.hasPotion = true; // Potion als gesammelt markieren
 
     this.tweens.add({
       targets: flyIcon,
-      x: 260,
+      x: offsetX + 260,
       y: 32,
       scale: 1.5,
       duration: 500,
