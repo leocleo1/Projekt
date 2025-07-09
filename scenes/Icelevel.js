@@ -5,12 +5,12 @@ export class Icelevel extends Phaser.Scene {
   
   preload() {
     this.load.image('Eiswelt', 'assets/IceLevel/Eiswelt.png');
-    this.load.tilemapTiledJSON('map', 'assets/IceLevel/Eislevel.json');
+    this.load.tilemapTiledJSON('iceMap', 'assets/IceLevel/Eislevel.json');
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
     this.load.image('item', 'assets/IceLevel/Kompass.png');
     this.load.image('star', 'assets/star.png');
     this.load.image('snowball', 'assets/IceLevel/Schneeball.png');
-    this.load.image('background', 'assets/IceLevel/Eishintergrund.png');
+    this.load.image('iceBackground', 'assets/IceLevel/Eishintergrund.png');
     this.load.image('schalter', 'assets/IceLevel/schalter.png');
     this.load.spritesheet('snowman', 'assets/IceLevel/Schneemann.png', {
       frameWidth:32,
@@ -25,7 +25,7 @@ export class Icelevel extends Phaser.Scene {
   }
   
   create() {
-    const bg = this.add.image(0, 0, 'background').setOrigin(0, 0).setScrollFactor(0).setDepth(-3);
+    const bg = this.add.image(0, 0, 'iceBackground').setOrigin(0, 0).setScrollFactor(0).setDepth(-3);
 
     // Bildschirmgröße
     const gameWidth = this.sys.game.config.width;
@@ -34,15 +34,20 @@ export class Icelevel extends Phaser.Scene {
     // Bild auf Fenstergröße skalieren
     bg.setDisplaySize(gameWidth, gameHeight);
       
-    const map = this.make.tilemap({ key: 'map' });
+    const map = this.make.tilemap({ key: 'iceMap' });
     const tileset = map.addTilesetImage('Eiswelt', 'Eiswelt');
     this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
+
+    
     this.visualLayer.setDepth(0);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     this.eislayer = map.createLayer('Eislayer', tileset, 0, 0);
     this.eislayer.setCollisionByExclusion([-1]);
+
+    console.log(map.layers.map(l => l.name));
+
       
     // Objektlayer "Plattformen" laden
     const platformObjects = map.getObjectLayer('Object Layer 2').objects;

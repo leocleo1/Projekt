@@ -4,8 +4,8 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', 'assets/DesertLevel/Wüstenhintergrund.png');
-        this.load.tilemapTiledJSON('map', 'assets/DesertLevel/Wüstenlevel.json');
+        this.load.image('desertBackground', 'assets/DesertLevel/Wüstenhintergrund.png');
+        this.load.tilemapTiledJSON('desertMap', 'assets/DesertLevel/Wüstenlevel.json');
         this.load.image('Wüstenwelt', 'assets/DesertLevel/Wüstenwelt.png'); //Tileset
         this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.image('star', 'assets/star.png');
@@ -17,7 +17,7 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     create() {
-        const bg = this.add.image(0, 0, 'background')
+        const bg = this.add.image(0, 0, 'desertBackground')
             .setOrigin(0, 0)
             .setScrollFactor(0); // bleibt relativ zur Kamera
 
@@ -32,7 +32,7 @@ export class DesertLevel extends Phaser.Scene {
         bg.setDepth(-1);
 
 
-        const map = this.make.tilemap({ key: 'map' });
+        const map = this.make.tilemap({ key: 'desertMap' });
         const tileset = map.addTilesetImage('Wüstenwelt', 'Wüstenwelt');
         this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
         this.visualLayer.setDepth(0);
@@ -218,7 +218,7 @@ export class DesertLevel extends Phaser.Scene {
             .setDepth(10);
 
         
-    
+       
 
 
     }
@@ -546,6 +546,7 @@ export class DesertLevel extends Phaser.Scene {
 
     nextLevel() {
         console.log("Portal betreten, nächstes Level wird geladen!");
-        this.scene.start('JungleLevel');
+        this.scene.start('Icelevel');
+        
     }
 }    
