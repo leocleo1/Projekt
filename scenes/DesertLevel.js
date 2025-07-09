@@ -14,6 +14,8 @@ export class DesertLevel extends Phaser.Scene {
             frameHeight: 32
         });
         this.load.image('backpack', 'assets/DesertLevel/Rucksack.png');
+        this.load.image('Portal', 'assets/Portal.png');
+        
     }
 
     create() {
@@ -160,6 +162,22 @@ export class DesertLevel extends Phaser.Scene {
             fill: '#000000'
         }).setScrollFactor(0)
           .setDepth(10);
+
+        this.portal = this.physics.add.sprite(20, 750, 'Portal')
+          .setScale( 1.3)
+          .setDepth(-1);
+      
+        this.portal2 = this.physics.add.sprite(3170, 585, 'Portal')
+          .setScale( 1.3)
+          .setDepth(-1);
+      
+        this.portal.body.allowGravity = false;   
+        this.portal.setImmovable(true); 
+                 
+      
+        this.portal2.body.allowGravity = false;
+        this.portal2.setImmovable(true);
+          
 
         const portalObjects = map.getObjectLayer('Portal')?.objects || [];
         this.portals = this.physics.add.staticGroup();
