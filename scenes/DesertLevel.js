@@ -6,7 +6,7 @@ export class DesertLevel extends Phaser.Scene {
     preload() {
         this.load.image('background', 'assets/DesertLevel/Wüstenhintergrund.png');
         this.load.tilemapTiledJSON('map', 'assets/DesertLevel/Wüstenlevel.json');
-        this.load.image('Eiswelt', 'assets/IceLevel/Eiswelt.png'); //Tileset
+        this.load.image('Wüstenwelt', 'assets/DesertLevel/Wüstenwelt.png'); //Tileset
         this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.image('star', 'assets/star.png');
         this.load.spritesheet('sandstorm', 'assets/DesertLevel/Sandsturm.png', {
@@ -32,7 +32,7 @@ export class DesertLevel extends Phaser.Scene {
 
 
         const map = this.make.tilemap({ key: 'map' });
-        const tileset = map.addTilesetImage('Eiswelt', 'Eiswelt');
+        const tileset = map.addTilesetImage('Wüstenwelt', 'Wüstenwelt');
         this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
         this.visualLayer.setDepth(0);
 
@@ -58,11 +58,31 @@ export class DesertLevel extends Phaser.Scene {
           .setVisible(false) // Unsichtbar – nur Kollision
           .refreshBody();
         });
+
+        const ladderObjects = map.getObjectLayer('Ladder')?.objects || [];
+
+        this.ladders = this.physics.add.staticGroup();
+        
+        ladderObjects.forEach(obj => {
+          const ladder = this.ladders.create(
+            obj.x + obj.width / 2,
+            obj.y + obj.height / 2,
+            null
+          ).setDisplaySize(obj.width, obj.height)
+           .setVisible(false) // Optional
+           .refreshBody();
+        });
+                
       
         // Spieler erstellen
-        this.player = this.physics.add.sprite(0, 500, 'dude');
+        this.player = this.physics.add.sprite(0, 700, 'dude');
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.platforms);
+
+        this.onLadder = false;
+        this.physics.add.overlap(this.player, this.ladders, () => {
+            this.onLadder = true;
+        }, null, this);
 
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -106,16 +126,11 @@ export class DesertLevel extends Phaser.Scene {
 
         this.stars = this.physics.add.group();
 
-        this.stars.create(173, 596, 'star');
-        this.stars.create(304, 405, 'star');
-        this.stars.create(627, 213, 'star');
-        this.stars.create(358, 179, 'star');
-        this.stars.create(78, 84, 'star');
-        this.stars.create(942, 148, 'star');
-        this.stars.create(1481, 149, 'star');
-        this.stars.create(1063, 310, 'star');
-        this.stars.create(1055, 531, 'star');
-        this.stars.create(1295, 594, 'star');
+        this.stars.create(1193, 786, 'star');
+        this.stars.create(1220, 786, 'star');
+        this.stars.create(1246, 786, 'star');
+        this.stars.create(1272, 786, 'star');
+        
 
       
         this.physics.add.collider(this.stars, this.platforms);
@@ -163,54 +178,38 @@ export class DesertLevel extends Phaser.Scene {
         }, null, this);
 
         this.sandstorms = this.physics.add.group();
-        this.sandstorm = this.physics.add.sprite(400, 300, 'sandstorm');
-        this.sandstorms.add(this.sandstorm);
-        this.sandstorm.anims.play('sandstorm_anim');
-        this.sandstorm.setCollideWorldBounds(true);
-        this.sandstorm.setBounce(1);
-        this.sandstorm.lastEscapeDir = null;
-        this.sandstorm.lastEscapeTimer = 0;
-        this.sandstormSpeed = 100;
-        this.sandstormNormalSpeed = 100;
-        this.sandstormDashSpeed = 350;
-        this.sandstormIsDashing = false;
-        this.sandstorm.hp = 4;
 
-        this.sandstorm.healthBarBg = this.add.rectangle(this.sandstorm.x, this.sandstorm.y - 40, 34, 6, 0x000000)
-            .setScrollFactor(1)
-            .setDepth(5);
+        const triggerObjects = map.getObjectLayer('Trigger')?.objects || [];
 
-        this.sandstorm.healthBar = this.add.rectangle(this.sandstorm.x, this.sandstorm.y - 40, 30, 4, 0xff0000)
-            .setScrollFactor(1)
-            .setDepth(6);
-
-
-        this.physics.add.overlap(this.projectiles, this.sandstorms, this.hitSandstorm, null, this);
-        this.physics.add.overlap(this.player, this.sandstorms, this.sandstormHitsPlayer, null, this);
-
-        this.time.addEvent({
-            delay: 5000,
-            loop: true,
-            callback: () => {
-                this.sandstormIsDashing = true;
-                this.sandstormSpeed = this.sandstormDashSpeed;
-
-                this.time.delayedCall(800, () => {
-                    this.sandstormIsDashing = false;
-                    this.sandstormSpeed = this.sandstormNormalSpeed;
-                });
-            }
-        });
+        if (triggerObjects.length > 0) {
+            const obj = triggerObjects[0]; // Erstes (und einziges) Objekt
+        
+            this.sandstormTriggerZone = this.add.zone(
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2,
+                obj.width,
+                obj.height
+            );
+            this.physics.world.enable(this.sandstormTriggerZone);
+            this.sandstormTriggerZone.body.setAllowGravity(false);
+            this.sandstormTriggerZone.body.setImmovable(true);
+        
+            this.physics.add.overlap(this.player, this.sandstormTriggerZone, this.spawnSandstorm, null, this);
+        }
 
         this.add.text(50, 750, 'Benutze ← → um dich zu bewegen', { fontSize: '14px', fill: '#000' });
         this.add.text(500, 700, 'Benutze ↑ um zu springen', { fontSize: '14px', fill: '#000' });
         this.add.text(800, 620, 'Benutze ↓ um dich zu ducken', { fontSize: '14px', fill: '#000'});
+        this.add.text(1130, 700, 'Laufe durch Sterne um sie einzusammeln', { fontsize: '14px', fill: '#000' });
+        this.add.text(1130, 720, 'Diese sind deine Munition', { fontsize: '14px', fill: '#000'});
+
 
     }
 
     update() {
         const player = this.player;
         const cursors = this.cursors;
+        this.onLadder = false;
 
         if (cursors.left.isDown) {
             player.setVelocityX(-200);
@@ -229,7 +228,7 @@ export class DesertLevel extends Phaser.Scene {
 
         // Springen
         if (cursors.up.isDown && this.player.body.blocked.down) {
-            this.player.setVelocityY(-250);
+            this.player.setVelocityY(-260);
         }
   
         // Ducken
@@ -253,6 +252,29 @@ export class DesertLevel extends Phaser.Scene {
             this.shoot();
         }
 
+        // Prüfen, ob der Spieler auf einer Leiter steht
+        this.physics.overlap(this.player, this.ladders, () => {
+            this.onLadder = true;
+  
+            // Hoch oder runter klettern
+            if (this.cursors.up.isDown) {
+                this.player.setVelocityY(-100);
+            } else if (this.cursors.down.isDown) {
+                this.player.setVelocityY(100);
+            } else {
+                this.player.setVelocityY(0);
+            }
+  
+            // Gravitation deaktivieren beim Klettern
+            this.player.body.allowGravity = false;
+        }, null, this);
+  
+        // Falls nicht auf der Leiter → Gravitation reaktivieren
+        if (!this.onLadder) {
+            this.player.body.allowGravity = true;
+        }
+          
+
         if (this.player.y > 1000) {
             this.killPlayer();
         }
@@ -268,9 +290,12 @@ export class DesertLevel extends Phaser.Scene {
             this.player.x = maxX;
         }
 
-        this.moveSandstormTowardsPlayer();
+        if (this.sandstorm) {
+            this.moveSandstormTowardsPlayer();
+        }
+        
 
-        if (this.sandstorm.active && this.sandstorm.healthBar) {
+        if (this.sandstorm && this.sandstorm.active && this.sandstorm.healthBar) {
             this.sandstorm.healthBarBg.setPosition(this.sandstorm.x, this.sandstorm.y - 40);
             this.sandstorm.healthBar.setPosition(this.sandstorm.x, this.sandstorm.y - 40);
         }
@@ -289,7 +314,7 @@ export class DesertLevel extends Phaser.Scene {
         this.updateAmmoDisplay();
           
         // Respawn nach 30 Sekunden
-        this.time.delayedCall(30000, () => {
+        this.time.delayedCall(10000, () => {
           star.enableBody(true, x, y, true, true);
         });
            
@@ -404,8 +429,62 @@ export class DesertLevel extends Phaser.Scene {
               this.registry.set('lastLevel', this.scene.key);
               this.scene.start('GameOverScene');
             }
-          }
+        }
     }
+
+    spawnSandstorm() {
+        this.add.text(1700, 700, 'Benutze Leertaste um zu schießen', { fontsize: '14px', fill: '#000'});
+        // Falls bereits gespawnt → nichts tun
+        if (this.sandstormSpawned) return;
+    
+        this.sandstormSpawned = true;
+    
+        // Zone entfernen
+        this.sandstormTriggerZone.destroy();
+        this.time.delayedCall(1000, () => {
+            this.sandstorm = this.physics.add.sprite(1808, 753, 'sandstorm');
+            this.sandstorms.add(this.sandstorm);
+            this.sandstorm.anims.play('sandstorm_anim');
+            this.sandstorm.setCollideWorldBounds(true);
+            this.sandstorm.setBounce(1);
+            this.physics.add.collider(this.sandstorm, this.platforms);
+            this.sandstorm.lastEscapeDir = null;
+            this.sandstorm.lastEscapeTimer = 0;
+            this.sandstormSpeed = 100;
+            this.sandstormNormalSpeed = 100;
+            this.sandstormDashSpeed = 350;
+            this.sandstormIsDashing = false;
+            this.sandstorm.hp = 4;
+
+            this.sandstorm.healthBarBg = this.add.rectangle(this.sandstorm.x, this.sandstorm.y - 40, 34, 6, 0x000000)
+                .setScrollFactor(1)
+                .setDepth(5);
+
+            this.sandstorm.healthBar = this.add.rectangle(this.sandstorm.x, this.sandstorm.y - 40, 30, 4, 0xff0000)
+                .setScrollFactor(1)
+                .setDepth(6);
+
+
+            this.physics.add.overlap(this.projectiles, this.sandstorms, this.hitSandstorm, null, this);
+            this.physics.add.overlap(this.player, this.sandstorms, this.sandstormHitsPlayer, null, this);
+
+            this.time.addEvent({
+                delay: 5000,
+                loop: true,
+                callback: () => {
+                    this.sandstormIsDashing = true;
+                    this.sandstormSpeed = this.sandstormDashSpeed;
+
+                    this.time.delayedCall(800, () => {
+                        this.sandstormIsDashing = false;
+                        this.sandstormSpeed = this.sandstormNormalSpeed;
+                    });
+                }
+            });
+        });
+        
+    }
+    
       
 
     nextLevel() {
