@@ -3,20 +3,23 @@ export class StartScene extends Phaser.Scene {
       super('StartScene');
     }
   
-    preload() {}
+    preload() {
+      this.load.image('Start', 'assets/Start.png');
+      this.load.image('Startbg', 'assets/Startbg.png');
+      this.load.image('Logo', 'assets/Logo.png');
+    }
   
     create() {
-      this.cameras.main.setBackgroundColor('#ffffff');
+      const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
+      const logo = this.add.image(window.innerWidth /2 , 300, 'Logo').setScale(0.7);
+      const start = this.add.image(window.innerWidth/2, 600, 'Start').setScale(0.7).setInteractive();
+
+      const gameWidth = window.innerWidth
+      const gameHeight = window.innerHeight;
   
-      const startButton = this.add.text(480, 320, 'Start', {
-        fontSize: '32px',
-        color: '#000000',
-        backgroundColor: '#0077cc',
-        padding: { x: 20, y: 10 }
-      }).setOrigin(0.5).setInteractive();
-  
-      startButton.on('pointerdown', () => {
-        this.scene.start('Map1'); 
+      
+      start.on('pointerdown', () => {
+        this.scene.start('JungleLevel'); // Start the JungleLevel scene
       });
     }
   }
