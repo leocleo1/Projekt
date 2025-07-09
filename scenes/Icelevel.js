@@ -21,10 +21,11 @@ export class Icelevel extends Phaser.Scene {
       frameHeight: 96
     });
     this.load.image('teddy', 'assets/IceLevel/Teddy.png')
+    this.load.image('Portal', 'assets/Portal.png');
   }
   
   create() {
-    const bg = this.add.image(0, 0, 'background').setOrigin(0, 0).setScrollFactor(0);
+    const bg = this.add.image(0, 0, 'background').setOrigin(0, 0).setScrollFactor(0).setDepth(-3);
 
     // Bildschirmgröße
     const gameWidth = this.sys.game.config.width;
@@ -320,6 +321,22 @@ export class Icelevel extends Phaser.Scene {
 
     // Schneeobjekte (Pulverschnee-Layer) im Vordergrund anzeigen
     this.snowAreas.setDepth(1);
+
+    this.portal = this.physics.add.sprite(20, 560, 'Portal')
+    .setScale( 1.3)
+    .setDepth(-1);
+
+    this.portal2 = this.physics.add.sprite(1900, 560, 'Portal')
+    .setScale( 1.3)
+    .setDepth(-1);
+
+    this.portal.body.allowGravity = false;   
+    this.portal.setImmovable(true); 
+           
+
+    this.portal2.body.allowGravity = false;
+    this.portal2.setImmovable(true);
+    
 
     const portalObjects = map.getObjectLayer('Portal')?.objects || [];
     this.portals = this.physics.add.staticGroup();

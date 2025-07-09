@@ -16,7 +16,7 @@ export class StartScene extends Phaser.Scene {
       }).setOrigin(0.5).setInteractive();
   
       startButton.on('pointerdown', () => {
-        this.scene.start('DesertLevel'); 
+        this.scene.start('JungleLevel'); // Start the Icelevel scene
       });
     }
   }
