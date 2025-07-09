@@ -17,11 +17,12 @@ export class JungleLevel extends Phaser.Scene {
     this.load.image('star', 'assets/star.png');
     this.load.image('Potion', 'assets/JungleLevel/Potion.png');
     this.load.image('Zauberstab', 'assets/JungleLevel/Zauberstab.png');
+    this.load.image('Portal', 'assets/Portal.png');
   }
 
 
   create() {
-    const bg = this.add.image(0, 0, 'JungleBackground').setOrigin(0, 0).setScrollFactor(1);
+    const bg = this.add.image(window.innerWidth / 2 - 480, 0, 'JungleBackground').setOrigin(0, 0).setScrollFactor(1).setDepth(-3);
 
     // Bildschirmgröße
     const gameWidth = window.innerWidth
@@ -29,19 +30,20 @@ export class JungleLevel extends Phaser.Scene {
     //const gameHeight = this.sys.game.config.height;
     
     
-
+    const offsetX = window.innerWidth / 2 - 480;
     const map = this.make.tilemap({ key: 'JungleMap' });
 
     const jungleTiles = map.addTilesetImage('JungleTiles', 'JungleTiles');
     const bodenTiles = map.addTilesetImage('Boden', 'Boden');
     const starTiles = map.addTilesetImage('Stars', 'star');
 
-    const bodenLayer = map.createLayer('Boden', bodenTiles, 0, 0);
-    const jungleLayer = map.createLayer('JungleTiles', jungleTiles, 0, 0);
-    const böseBlumenLayer = map.createLayer('BöseBlumen', jungleTiles, 0, 0);
-    const guteBlumenLayer = map.createLayer('GuteBlumen', jungleTiles, 0, 0);
-    const starLayer = map.createLayer('Stars', starTiles, 0, 0);
-    const dekoLayer = map.createLayer('Deko', jungleTiles, 0, 0);
+    const bodenLayer = map.createLayer('Boden', bodenTiles, window.innerWidth / 2 - 480, 0);
+    const jungleLayer = map.createLayer('JungleTiles', jungleTiles, window.innerWidth / 2- 480, 0);
+    const böseBlumenLayer = map.createLayer('BöseBlumen', jungleTiles, window.innerWidth / 2- 480, 0);
+    const guteBlumenLayer = map.createLayer('GuteBlumen', jungleTiles, window.innerWidth / 2 - 480, 0);
+    const starLayer = map.createLayer('Stars', starTiles, window.innerWidth / 2 - 480, 0);
+    const dekoLayer = map.createLayer('Deko', jungleTiles, window.innerWidth / 2 - 480, 0);
+
 
  
     // Kollisionsebenen
@@ -50,6 +52,8 @@ export class JungleLevel extends Phaser.Scene {
     böseBlumenLayer.setCollisionByExclusion([-1]);
     guteBlumenLayer.setCollisionByExclusion([-1]);
 
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.physics.world.setBounds(offsetX, 0, map.widthInPixels, map.heightInPixels);
 
 
 
@@ -57,6 +61,7 @@ export class JungleLevel extends Phaser.Scene {
     // Spieler erstellen
     //this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
     this.player = this.physics.add.sprite(100, 3100, 'dude');
+    //this.player = this.physics.add.sprite(850, 100, 'dude');
 
     this.player.setMaxVelocity(200, 500);
     this.player.setDamping(true);
@@ -154,20 +159,18 @@ export class JungleLevel extends Phaser.Scene {
         this.time.delayedCall(200, () => player.clearTint());
     }, null, this);
 
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
+   
 
 
     this.ammo = 0; // Anzahl der verfügbaren Schüsse
 
     // Stern-Counter
-    this.ammoIcon = this.add.image(960 - 80, 30, 'star')
+    this.ammoIcon = this.add.image(window.innerWidth / 2 - 480 + 960 - 80, 30, 'star')
       .setScale(0.8)
       .setScrollFactor(0)
       .setDepth(10);
 
-    this.ammoText = this.add.text(960 - 60, 18, `: ${this.ammo}`, {
+    this.ammoText = this.add.text(window.innerWidth / 2 - 480 + 960 - 60, 18, `: ${this.ammo}`, {
       fontSize: '24px',
       fill: '#000000'
     }).setScrollFactor(0)
@@ -217,29 +220,69 @@ export class JungleLevel extends Phaser.Scene {
 
 
     //Zauberstab
-    this.zauberstab = this.physics.add.sprite(400, 2020, 'Zauberstab');
+    this.zauberstab = this.physics.add.sprite(window.innerWidth / 2 - 480 + 400, 2020, 'Zauberstab');
     this.physics.add.collider(this.zauberstab, jungleLayer);
     this.physics.add.collider(this.zauberstab, bodenLayer);
     this.physics.add.overlap(this.player, this.zauberstab, this.collectZauberstab, null, this);
     this.zauberstab.setDepth(0);
 
-    this.zauberstabSlot = this.add.image(220, 32, 'Zauberstab')
+    this.zauberstabSlot = this.add.image(window.innerWidth / 2 - 480 + 220, 32, 'Zauberstab')
       .setScale(1.5)
       .setAlpha(0.3)
       .setScrollFactor(0);
 
     
     // Potion
-    this.potion = this.physics.add.sprite(595, 1400, 'Potion');
+    this.potion = this.physics.add.sprite(window.innerWidth / 2 - 480 + 595, 1400, 'Potion');
     this.physics.add.collider(this.potion, jungleLayer);
     this.physics.add.collider(this.potion, bodenLayer);
     this.physics.add.overlap(this.player, this.potion, this.collectPotion, null, this);
     this.potion.setDepth(0);
     
-    this.potionSlot = this.add.image(260, 32, 'Potion')
+    this.potionSlot = this.add.image(window.innerWidth / 2 - 480 + 260, 32, 'Potion')
       .setScale(1.5)
       .setAlpha(0.5)
       .setScrollFactor(0);
+    
+    
+    this.physics.add.overlap(this.player, this.potion, this.collectPotion, null, this);
+
+    //Portal
+    this.portal = this.physics.add.sprite(window.innerWidth / 2 - 480 + 30, 3120, 'Portal')
+    .setScale( 1.3)
+    .setDepth(-1);
+
+    this.portal2 = this.physics.add.sprite(window.innerWidth / 2 - 480 +930, 110, 'Portal')
+    .setScale( 1.3)
+    .setDepth(-1);
+    
+    this.portal.body.allowGravity = false;   
+    this.portal.setImmovable(true); 
+        
+
+    this.portal2.body.allowGravity = false;
+    this.portal2.setImmovable(true);
+  
+
+    const portalObjects = map.getObjectLayer('Portal')?.objects || [];
+    this.portals = this.physics.add.staticGroup();
+
+    portalObjects.forEach(obj => {
+      const portal = this.portals.create(
+        obj.x + obj.width / 2,
+        obj.y + obj.height / 2,
+        null
+      )
+      .setDisplaySize(obj.width, obj.height)
+      .setVisible(false)
+      .refreshBody();
+    });
+
+    this.physics.add.overlap(this.player, this.portals, () => {
+      this.nextLevel();
+    }, null, this);
+
+    
     
     // Animationen für den Spieler
     this.anims.create({
@@ -264,16 +307,15 @@ export class JungleLevel extends Phaser.Scene {
 
     //Healthbar erstellen
     this.hp = 100;
-    this.healthBarBackground = this.add.rectangle(100, 30, 104, 24, 0x000000).setScrollFactor(0);
-    this.healthBar = this.add.rectangle(100, 30, 100, 20, 0x00ff00).setScrollFactor(0);
+    this.healthBarBackground = this.add.rectangle(window.innerWidth / 2 - 480 + 100, 30, 104, 24, 0x000000).setScrollFactor(0);
+    this.healthBar = this.add.rectangle(window.innerWidth / 2 - 480 + 100, 30, 100, 20, 0x00ff00).setScrollFactor(0);
 
-    // Welt- und Kamera-Bounds
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    
 
     // Beispiel-Spieler
     
     this.cameras.main.startFollow(this.player);
+    this.cameras.main.setZoom(1); // Kamera-Zoom anpassen
     //this.cameras.main.scrollY = map.heightInPixels - this.cameras.main.height;
 
     // Eingaben initialisieren
@@ -701,6 +743,11 @@ export class JungleLevel extends Phaser.Scene {
     });
 
     console.log("Du hast den Zauberstab gefunden!");
+  }
+
+  nextLevel() {
+    console.log("Portal betreten, du gehst nach Hause!");
+    this.scene.start('HomeLevel');
   }
 
 }
