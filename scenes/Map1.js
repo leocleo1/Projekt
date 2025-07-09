@@ -3,21 +3,24 @@ export class Map1 extends Phaser.Scene {
       super('Map1');
     }
 
-    preload() {}
+    preload() {
+        this.load.image('Startbg', 'assets/Startbg.png');
+        this.load.image('Weiter', 'assets/Weiter.png');
+        this.load.image('E1', 'assets/E1.png');
+    }
   
-    create() {
 
-    this.cameras.main.setBackgroundColor('#ffffff');
+    create() {
+      const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
+      const E1 = this.add.image(window.innerWidth /2 , 420, 'E1').setScale(0.5);
+      const weiter = this.add.image(1300, 750, 'Weiter').setScale(0.25).setInteractive();
+
+      const gameWidth = window.innerWidth
+      const gameHeight = window.innerHeight;
   
-      const startButton = this.add.text(480, 320, 'Weiter', {
-        fontSize: '32px',
-        color: '#000000',
-        backgroundColor: '#0077cc',
-        padding: { x: 20, y: 10 }
-      }).setOrigin(0.5).setInteractive();
-  
-      startButton.on('pointerdown', () => {
-        this.scene.start('DesertLevel'); // Start the Icelevel scene
+      
+      weiter.on('pointerdown', () => {
+        this.scene.start('DesertLevel'); // Start the JungleLevel scene
       });
     }
   }
