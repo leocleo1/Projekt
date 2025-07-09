@@ -15,10 +15,23 @@ export class DesertLevel extends Phaser.Scene {
         });
         this.load.image('backpack', 'assets/DesertLevel/Rucksack.png');
         this.load.image('Portal', 'assets/Portal.png');
-        
+        this.load.audio('jumpSound', 'sounds/Jump.wav');
+        this.load.audio('hitSound', 'sounds/Hit2.wav');
+        this.load.audio('pickupSound', 'sounds/Pickup1.wav');
+        this.load.audio('itemPickupSound', 'sounds/itemPickup.wav');
+        this.load.audio('shootSound', 'sounds/Shoot.wav');
+        this.load.audio('bgMusic', 'sounds/backgroundMusic.wav');
+
     }
 
     create() {
+        if (!this.sound.get('bgMusic')) {
+            const music = this.sound.add('bgMusic', {
+                loop: true,
+                volume: 0.3
+            });
+            music.play();
+        }
         const bg = this.add.image(0, 0, 'desertBackground')
             .setOrigin(0, 0)
             .setScrollFactor(0); // bleibt relativ zur Kamera
@@ -80,7 +93,7 @@ export class DesertLevel extends Phaser.Scene {
       
         // Spieler erstellen
         this.player = this.physics.add.sprite(0, 770, 'dude');
-        this.player.setCollideWorldBounds(true);
+        this.player.setCollideWorldBounds(false);
         this.physics.add.collider(this.player, this.platforms);
 
         this.onLadder = false;
@@ -247,7 +260,11 @@ export class DesertLevel extends Phaser.Scene {
             .setDepth(10);
 
         
-       
+        this.jumpSound = this.sound.add('jumpSound');
+        this.hitSound = this.sound.add('hitSound');
+        this.pickupSound = this.sound.add('pickupSound');
+        this.itemPickupSound = this.sound.add('itemPickupSound');
+        this.shootSound = this.sound.add('shootSound');
 
 
     }
@@ -260,17 +277,17 @@ export class DesertLevel extends Phaser.Scene {
 
         if (!this.knockbackActive) {
             if (cursors.left.isDown) {
-            player.setVelocityX(-200);
-            player.flipX = true;
-            player.anims.play('right', true);
+                player.setVelocityX(-200);
+                player.flipX = true;
+                player.anims.play('right', true);
             } else if (cursors.right.isDown) {
-            player.setVelocityX(200);
+               player.setVelocityX(200);
     
-            player.flipX = false;
-            player.anims.play('right', true);
+                player.flipX = false;
+                player.anims.play('right', true);
             } else {
-            player.setVelocityX(0);
-            player.anims.play('turn');
+                player.setVelocityX(0);
+                player.anims.play('turn');
             }
         }
         
@@ -279,6 +296,7 @@ export class DesertLevel extends Phaser.Scene {
         // Springen
         if (cursors.up.isDown && this.player.body.blocked.down) {
             this.player.setVelocityY(-260);
+            this.jumpSound.play();
         }
   
         // Ducken
@@ -362,6 +380,7 @@ export class DesertLevel extends Phaser.Scene {
         star.disableBody(true, true); // Verstecken & deaktivieren statt zerstören
         this.ammo++;
         this.updateAmmoDisplay();
+        this.pickupSound.play();
           
         // Respawn nach 30 Sekunden
         this.time.delayedCall(10000, () => {
@@ -379,6 +398,7 @@ export class DesertLevel extends Phaser.Scene {
     
         this.ammo--;
         this.updateAmmoDisplay();
+        this.shootSound.play();
     }
 
     updateHealthBar() {
@@ -463,6 +483,7 @@ export class DesertLevel extends Phaser.Scene {
             this.hp -= 20;
             this.updateHealthBar();
             console.log(`Leben: ${this.hp}`);
+            this.hitSound.play();
 
             if (this.hp > 0) {
                 player.setTint(0xff0000);
@@ -557,6 +578,7 @@ export class DesertLevel extends Phaser.Scene {
           .setScrollFactor(0);
     
         backpack.destroy();
+        this.itemPickupSound.play();
     
         this.tweens.add({
           targets: flyIcon,

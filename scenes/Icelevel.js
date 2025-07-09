@@ -22,9 +22,23 @@ export class Icelevel extends Phaser.Scene {
     });
     this.load.image('teddy', 'assets/IceLevel/Teddy.png')
     this.load.image('Portal', 'assets/Portal.png');
+    this.load.audio('jumpSound', 'sounds/Jump.wav');
+    this.load.audio('hitSound', 'sounds/Hit2.wav');
+    this.load.audio('pickupSound', 'sounds/Pickup1.wav');
+    this.load.audio('itemPickupSound', 'sounds/itemPickup.wav');
+    this.load.audio('shootSound', 'sounds/Shoot.wav');
+    this.load.audio('bgMusic', 'sounds/backgroundMusic.wav');
   }
   
   create() {
+    if (!this.sound.get('bgMusic')) {
+      const music = this.sound.add('bgMusic', {
+          loop: true,
+          volume: 0.3
+      });
+      music.play();
+    }
+
     const bg = this.add.image(0, 0, 'iceBackground').setOrigin(0, 0).setScrollFactor(0).setDepth(-3);
 
     // Bildschirmgröße
