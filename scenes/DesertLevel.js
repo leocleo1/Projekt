@@ -4,8 +4,8 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', 'assets/DesertLevel/Wüstenhintergrund.png');
-        this.load.tilemapTiledJSON('map', 'assets/DesertLevel/Wüstenlevel.json');
+        this.load.image('desertBackground', 'assets/DesertLevel/Wüstenhintergrund.png');
+        this.load.tilemapTiledJSON('desertMap', 'assets/DesertLevel/Wüstenlevel.json');
         this.load.image('Wüstenwelt', 'assets/DesertLevel/Wüstenwelt.png'); //Tileset
         this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.image('star', 'assets/star.png');
@@ -13,10 +13,11 @@ export class DesertLevel extends Phaser.Scene {
             frameWidth: 32,
             frameHeight: 32
         });
+        this.load.image('backpack', 'assets/DesertLevel/Rucksack.png');
     }
 
     create() {
-        const bg = this.add.image(0, 0, 'background')
+        const bg = this.add.image(0, 0, 'desertBackground')
             .setOrigin(0, 0)
             .setScrollFactor(0); // bleibt relativ zur Kamera
 
@@ -31,7 +32,7 @@ export class DesertLevel extends Phaser.Scene {
         bg.setDepth(-1);
 
 
-        const map = this.make.tilemap({ key: 'map' });
+        const map = this.make.tilemap({ key: 'desertMap' });
         const tileset = map.addTilesetImage('Wüstenwelt', 'Wüstenwelt');
         this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
         this.visualLayer.setDepth(0);
@@ -43,6 +44,7 @@ export class DesertLevel extends Phaser.Scene {
         this.hp = 100;
         this.isDucking = false;
         this.invulnerable = false;
+        this.knockbackActive = false;
     
         // Statische Gruppe für Plattformen
         this.platforms = this.physics.add.staticGroup();
@@ -144,7 +146,7 @@ export class DesertLevel extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(10);
       
-        this.healthBar = this.add.rectangle(100, 30, 100, 20, 0xff0000)
+        this.healthBar = this.add.rectangle(100, 30, 100, 20, 0x00ff00)
             .setScrollFactor(0)
             .setDepth(11);
 
@@ -178,6 +180,7 @@ export class DesertLevel extends Phaser.Scene {
         }, null, this);
 
         this.sandstorms = this.physics.add.group();
+        this.sandstormSpawned = false;
 
         const triggerObjects = map.getObjectLayer('Trigger')?.objects || [];
 
@@ -203,6 +206,20 @@ export class DesertLevel extends Phaser.Scene {
         this.add.text(1130, 700, 'Laufe durch Sterne um sie einzusammeln', { fontsize: '14px', fill: '#000' });
         this.add.text(1130, 720, 'Diese sind deine Munition', { fontsize: '14px', fill: '#000'});
 
+        this.backpack = this.physics.add.sprite(340, 50, 'backpack');
+        this.backpack.setDepth(1);
+        this.physics.add.collider(this.backpack, this.platforms);
+        this.physics.add.overlap(this.player, this.backpack, this.collectBackpack, null, this);
+
+        this.itemSlot = this.add.image(180, 32, 'backpack')
+            .setScale(1.0)
+            .setAlpha(0.3)
+            .setScrollFactor(0)
+            .setDepth(10);
+
+        
+       
+
 
     }
 
@@ -210,20 +227,24 @@ export class DesertLevel extends Phaser.Scene {
         const player = this.player;
         const cursors = this.cursors;
         this.onLadder = false;
+        
 
-        if (cursors.left.isDown) {
+        if (!this.knockbackActive) {
+            if (cursors.left.isDown) {
             player.setVelocityX(-200);
             player.flipX = true;
             player.anims.play('right', true);
-        } else if (cursors.right.isDown) {
+            } else if (cursors.right.isDown) {
             player.setVelocityX(200);
     
             player.flipX = false;
             player.anims.play('right', true);
-        } else {
+            } else {
             player.setVelocityX(0);
             player.anims.play('turn');
+            }
         }
+        
         
 
         // Springen
@@ -413,8 +434,24 @@ export class DesertLevel extends Phaser.Scene {
             this.hp -= 20;
             this.updateHealthBar();
             console.log(`Leben: ${this.hp}`);
+
+            if (this.hp > 0) {
+                player.setTint(0xff0000);
+                this.time.delayedCall(200, () => {
+                    player.clearTint();
+                }); 
+            }
+
+            this.knockbackActive = true;
+            
         
-            player.setVelocityX(sandstorm.x > player.x ? -200: 200);
+            const pushStrength = 250;
+            const direction = player.x < sandstorm.x ? -1 : 1;
+            player.setVelocityX(direction * pushStrength);
+
+            this.time.delayedCall(500, () => {
+                this.knockbackActive = false;
+            });
         
             this.invulnerable = true;
             this.time.delayedCall(1000, () => {
@@ -423,7 +460,7 @@ export class DesertLevel extends Phaser.Scene {
         
             if (this.hp <= 0) {
               this.player.setTint(0x000000);
-              this.player.setVelocity(0,0);
+              this.player.setVelocity(0, 0);
               this.player.anims.stop();
               console.log("Spieler besiegt!");
               this.registry.set('lastLevel', this.scene.key);
@@ -466,7 +503,7 @@ export class DesertLevel extends Phaser.Scene {
 
 
             this.physics.add.overlap(this.projectiles, this.sandstorms, this.hitSandstorm, null, this);
-            this.physics.add.overlap(this.player, this.sandstorms, this.sandstormHitsPlayer, null, this);
+            this.physics.add.collider(this.player, this.sandstorms, this.sandstormHitsPlayer, null, this);
 
             this.time.addEvent({
                 delay: 5000,
@@ -484,11 +521,32 @@ export class DesertLevel extends Phaser.Scene {
         });
         
     }
+
+    collectBackpack(player, backpack) {
+        const flyIcon = this.add.image(backpack.x, backpack.y, 'backpack')
+          .setScale(1)
+          .setScrollFactor(0);
+    
+        backpack.destroy();
+    
+        this.tweens.add({
+          targets: flyIcon,
+          x: this.itemSlot.x,
+          y: this.itemSlot.y,
+          scale: 1.0,
+          duration: 500,
+          onComplete: () => {
+            flyIcon.setAlpha(1);
+          }
+        });
+        console.log("Du hast dein verlorenes Item gefunden!");
+    }
     
       
 
     nextLevel() {
         console.log("Portal betreten, nächstes Level wird geladen!");
-        this.scene.start('JungleLevel');
+        this.scene.start('Icelevel');
+        
     }
 }    
