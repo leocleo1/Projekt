@@ -85,7 +85,7 @@ export class Icelevel extends Phaser.Scene {
     });
   
     // Spieler erstellen
-    this.player = this.physics.add.sprite(0, 500, 'dude');
+    this.player = this.physics.add.sprite(0, 570, 'dude');
 
     this.player.setMaxVelocity(200, 500);
     this.player.setDamping(true);
@@ -357,11 +357,23 @@ export class Icelevel extends Phaser.Scene {
       .refreshBody();
     });
 
+    this.portalIsActive = false;
+
     this.physics.add.overlap(this.player, this.portals, () => {
-      this.nextLevel();
+      if (this.portalIsActive) {
+        console.log("Weiter ins nächste Level")
+        this.nextLevel();
+      } else {
+        console.log("Du musst erst alle Items finden");
+      }
     }, null, this);
 
     this.snowmanFallen = false;
+
+    this.collectedItems = {
+      item: false,
+      teddy: false
+    };
   }
   
   update() {
@@ -538,6 +550,8 @@ export class Icelevel extends Phaser.Scene {
         flyIcon.setAlpha(1);
       }
     });
+    this.collectedItems.kompass = true;
+    this.checkItemProgress();
     console.log("Du hast dein verlorenes Item gefunden!");
   }
     
@@ -800,8 +814,18 @@ export class Icelevel extends Phaser.Scene {
         flyIcon.setAlpha(1);
       }
     });
-
+    this.collectedItems.teddy = true;
+    this.checkItemProgress();
     console.log("Du hast den Teddy gefunden!");
+  }
+
+  checkItemProgress() {
+    const allCollected = this.collectedItems.kompass && this.collectedItems.teddy;
+
+    if (allCollected) {
+      console.log("Alle Items eingesammelt - Portal ist aktiv");
+      this.portalIsActive = true;
+    }
   }
   
   nextLevel() {

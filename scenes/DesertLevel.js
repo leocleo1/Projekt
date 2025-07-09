@@ -77,7 +77,7 @@ export class DesertLevel extends Phaser.Scene {
                 
       
         // Spieler erstellen
-        this.player = this.physics.add.sprite(0, 700, 'dude');
+        this.player = this.physics.add.sprite(0, 770, 'dude');
         this.player.setCollideWorldBounds(true);
         this.physics.add.collider(this.player, this.platforms);
 
@@ -174,9 +174,16 @@ export class DesertLevel extends Phaser.Scene {
             .setVisible(false)
             .refreshBody();
         });
+
+        this.portalIsActive = false;
       
         this.physics.add.overlap(this.player, this.portals, () => {
-            this.nextLevel();
+            if (this.portalIsActive) {
+                this.nextLevel();
+            } else {
+                console.log("Du musst erst den Rucksack finden");
+            }
+            
         }, null, this);
 
         this.sandstorms = this.physics.add.group();
@@ -210,6 +217,10 @@ export class DesertLevel extends Phaser.Scene {
         this.backpack.setDepth(1);
         this.physics.add.collider(this.backpack, this.platforms);
         this.physics.add.overlap(this.player, this.backpack, this.collectBackpack, null, this);
+
+        this.collectedItems = {
+            backpack: false
+        };
 
         this.itemSlot = this.add.image(180, 32, 'backpack')
             .setScale(1.0)
@@ -539,7 +550,19 @@ export class DesertLevel extends Phaser.Scene {
             flyIcon.setAlpha(1);
           }
         });
+
+        this.collectedItems.backpack = true;
+        this.checkItemProgress();
         console.log("Du hast dein verlorenes Item gefunden!");
+    }
+
+    checkItemProgress() {
+        const allCollected = this.collectedItems.backpack;
+
+        if (allCollected) {
+            console.log("Alle Items im Wüstenlevel eingesammelt - Portal ist aktiv");
+            this.portalIsActive = true;
+        }
     }
     
       
