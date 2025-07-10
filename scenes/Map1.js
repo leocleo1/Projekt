@@ -1,14 +1,14 @@
 export class Map1 extends Phaser.Scene {
-    constructor() {
-      super('Map1');
-    }
+  constructor() {
+    super('Map1');
+  }
 
-    preload() {
-        this.load.image('Startbg', 'assets/Startbg.png');
-        this.load.image('Weiter', 'assets/Weiter.png');
-        this.load.image('E1', 'assets/E1.png');
-    }
-  
+  preload() {
+      this.load.image('Startbg', 'assets/Startbg.png');
+      this.load.image('Weiter', 'assets/Weiter.png');
+      this.load.image('E1', 'assets/E1.png');
+  }
+
 
     create() {
     const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
