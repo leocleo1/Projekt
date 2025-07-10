@@ -288,9 +288,15 @@ export class DesertLevel extends Phaser.Scene {
 
         this.spawnRecurringSandstorm(); // Startet sofort den ersten
         this.time.addEvent({
-            delay: 30000,
+            delay: 60000,
             loop: true,
-            callback: this.spawnRecurringSandstorm,
+            callback: () => {
+                // Prüfen, ob ALLE Sandstürme nicht mehr aktiv sind
+                const aktiveStürme = this.sandstorms.getChildren().filter(s => s.active);
+                if (aktiveStürme.length === 0) {
+                    this.spawnRecurringSandstorm();
+                }
+            },
             callbackScope: this
         });
 
@@ -427,7 +433,7 @@ export class DesertLevel extends Phaser.Scene {
         this.pickupSound.play();
           
         // Respawn nach 30 Sekunden
-        this.time.delayedCall(10000, () => {
+        this.time.delayedCall(30000, () => {
           star.enableBody(true, x, y, true, true);
         });
            
@@ -663,7 +669,7 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     spawnRecurringSandstorm() {
-        const storm = this.physics.add.sprite(800, 80, 'sandstorm');
+        const storm = this.physics.add.sprite(1200, 80, 'sandstorm');
         this.sandstorms.add(storm);
         storm.anims.play('sandstorm_anim');
         storm.setCollideWorldBounds(true);
