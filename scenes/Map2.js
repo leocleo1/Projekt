@@ -10,16 +10,20 @@ export class Map2 extends Phaser.Scene {
   
 
     create() {
-      const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
-      const E2 = this.add.image(window.innerWidth /2 , 420, 'E2').setScale(0.5);
-      const weiter = this.add.image(1300, 750, 'Weiter').setScale(0.25).setInteractive();
+    const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
 
-      const gameWidth = window.innerWidth
-      const gameHeight = window.innerHeight;
-  
-      
+    const ratio = window.devicePixelRatio || 1;
+    const gameWidth = this.sys.game.config.width;
+    const gameHeight = this.sys.game.config.height;
+    startBackground.setDisplaySize(gameWidth, gameHeight);
+
+
+    const E2 = this.add.image(gameWidth / 2, gameHeight / 2, 'E2').setScale(0.9 / ratio);
+
+    const weiter = this.add.image(gameWidth - 170, gameHeight - 100, 'Weiter').setScale(0.4 / ratio).setInteractive();
+
       weiter.on('pointerdown', () => {
-        this.scene.start('Icelevel'); // Start the JungleLevel scene
+        this.scene.start('DesertLevel'); // Start the JungleLevel scene
       });
     }
   }

@@ -3,8 +3,13 @@ export class GameOverScene extends Phaser.Scene {
     super('GameOverScene');
   }
 
+  // preload() {
+  //   this.preload.image('Gameover', 'assets/Gameover.png');
+  // }
+
   create() {
     const { width, height } = this.scale;
+    // const gameOverBackground = this.add.image(0, 0, 'Gameover').setOrigin(0, 0).setScale(0.9).setDepth(-1);
 
     this.cameras.main.setBackgroundColor('#000000');
 
