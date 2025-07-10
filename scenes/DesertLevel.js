@@ -663,7 +663,7 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     spawnRecurringSandstorm() {
-        const storm = this.physics.add.sprite(200, 500, 'sandstorm');
+        const storm = this.physics.add.sprite(800, 80, 'sandstorm');
         this.sandstorms.add(storm);
         storm.anims.play('sandstorm_anim');
         storm.setCollideWorldBounds(true);
