@@ -23,7 +23,7 @@ export class Map2 extends Phaser.Scene {
     const weiter = this.add.image(gameWidth - 170, gameHeight - 100, 'Weiter').setScale(0.4 / ratio).setInteractive();
 
       weiter.on('pointerdown', () => {
-        this.scene.start('DesertLevel'); // Start the JungleLevel scene
+        this.scene.start('Icelevel'); 
       });
     }
   }

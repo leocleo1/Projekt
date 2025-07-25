@@ -711,27 +711,6 @@ export class JungleLevel extends Phaser.Scene {
  hitFritz(projectile, fritz) {
     projectile.destroy();
   fritz.destroy();
-
-    // projectile.disableBody(true, true);
-    // projectile.destroy();
-
-    // fritz.hp--;
-    // console.log(fritz.hp);
-    // const maxWidth = 30;
-    // const currentWidth = Math.max(0, (fritz.hp / 3) * maxWidth);
-    // fritz.healthBar.width = currentWidth;
-
-    // if (fritz.healthBar) {
-    //     fritz.healthBar.width = currentWidth;
-    // }
-
-    // if (fritz.hp <= 0) {
-    //     if (fritz.healthBar) fritz.healthBar.destroy();
-    //     if (fritz.healthBarBg) fritz.healthBarBg.destroy();
-    //     fritz.destroy();
-    //     this.fritz = null;
-    //     console.log("Fritz besiegt!");
-    // }
   }
 
 
