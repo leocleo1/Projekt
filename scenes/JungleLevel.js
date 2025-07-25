@@ -93,23 +93,6 @@ export class JungleLevel extends Phaser.Scene {
     this.fritz.setBounce(1, 1);
     this.fritzSpeed = 100;
 
-    // // Health für Fritz
-    // this.fritz.hp = 3;
-    
-
-    // // Healthbar für Fritz
-    // this.fritz.healthBarBg = this.add.rectangle(this.fritz.x, this.fritz.y - 40, 34, 6, 0x000000)
-    //     .setScrollFactor(1)
-    //     .setDepth(5);
-
-    // this.fritz.healthBar = this.add.rectangle(this.fritz.x, this.fritz.y - 40, 30, 4, 0xff0000)
-    //     .setScrollFactor(1)
-    //     .setDepth(6);
-
-    // const maxWidth = 30;
-    // const currentWidth = Math.max(0, (this.fritz.hp / 3) * maxWidth);
-    // this.fritz.healthBar.width = currentWidth;
-
 
 
     this.physics.add.collider(this.player, bodenLayer);
@@ -664,16 +647,6 @@ export class JungleLevel extends Phaser.Scene {
     this.ammoText.setText(`: ${this.ammo}`);
   }
 
-//   shoot() {
-//     const projectile = this.projectiles.create(this.player.x, this.player.y, 'star');
-//     projectile.setVelocityX(this.player.flipX ? -400 : 400);
-//     projectile.setGravityY(-350);
-//     projectile.setCollideWorldBounds(true);
-//     projectile.body.onWorldBounds = true;
-
-//     this.ammo--;
-//     this.updateAmmoDisplay();
-//   }
     
   shoot() {
   const star = this.projectiles.create(this.player.x, this.player.y, 'star');
@@ -691,22 +664,7 @@ export class JungleLevel extends Phaser.Scene {
   this.ammoText.setText(`: ${this.ammo}`);
 }
 
-   
-// hitFritz(projectile, fritz) {
-//   projectile.destroy();
-//     fritz.hp--;
-//   // Healthbar anpassen
-//   const maxWidth = 30;
-//   const currentWidth = Math.max(0, (fritz.hp / 3) * maxWidth);
-//   fritz.healthBar.width = currentWidth;
-
-//   if (fritz.hp <= 0) {
-//     if (fritz.healthBar) fritz.healthBar.destroy();
-//     if (fritz.healthBarBg) fritz.healthBarBg.destroy();
-//     fritz.destroy();
-//   }
-
-// }
+  
 
  hitFritz(projectile, fritz) {
     projectile.destroy();

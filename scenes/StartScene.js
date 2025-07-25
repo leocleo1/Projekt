@@ -20,7 +20,7 @@ export class StartScene extends Phaser.Scene {
   
       
       start.on('pointerdown', () => {
-        this.scene.start('Map1'); 
+        this.scene.start('JungleLevel'); // Start the JungleLevel scene
       });
     }
   }
