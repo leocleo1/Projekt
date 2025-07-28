@@ -14,6 +14,8 @@ export class JungleLevel extends Phaser.Scene {
     this.load.image('Fritz', 'assets/JungleLevel/Fritz.png');
 
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+    this.load.spritesheet('FritzLinks', 'assets/JungleLevel/FritzLinks.png', { frameWidth: 42, frameHeight: 42 });
+    this.load.spritesheet('FritzRechts', 'assets/JungleLevel/FritzRechts.png', { frameWidth: 42, frameHeight: 42 });
     this.load.image('star', 'assets/star.png');
     this.load.image('Potion', 'assets/JungleLevel/Potion.png');
     this.load.image('Zauberstab', 'assets/JungleLevel/Zauberstab.png');
@@ -88,7 +90,7 @@ export class JungleLevel extends Phaser.Scene {
 
 
     //Fritz hinzufügen
-    this.fritz = this.physics.add.sprite(500, 200, 'Fritz');
+    this.fritz = this.physics.add.sprite(800, 800, 'Fritz');
     this.fritz.setCollideWorldBounds(true);
     this.fritz.setBounce(1, 1);
     this.fritzSpeed = 100;
@@ -308,6 +310,21 @@ export class JungleLevel extends Phaser.Scene {
         frameRate: 10,
         repeat: -1
       });
+
+    // Animationen für Fritz
+    this.anims.create({
+      key: 'FritzLinks',
+      frames: this.anims.generateFrameNumbers('FritzLinks', { start: 0, end: 5 }),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'FritzRechts',
+      frames: this.anims.generateFrameNumbers('FritzRechts', { start: 0, end: 5 }),
+      frameRate: 10,
+      repeat: -1
+    });
 
     //Healthbar erstellen
     this.hp = 100;
@@ -592,6 +609,48 @@ export class JungleLevel extends Phaser.Scene {
         }
 
         this.fritz.setVelocity(vx, vy);
+
+        // Animationslogik für Fritz
+        if (vx > 0) {
+          this.fritz.anims.play('FritzRechts', true);
+          this.fritz.flipX = false;
+          this.fritzLastHorizontalDir = 'right';
+        } else if (vx < 0) {
+          this.fritz.anims.play('FritzLinks', true);
+          this.fritz.flipX = false;
+          this.fritzLastHorizontalDir = 'left';
+        } else if (vy !== 0) {
+          // Bewegung nach oben oder unten: Animation der letzten horizontalen Richtung
+          if (dx < 0) {
+            // Spieler ist links von Fritz
+            this.fritz.anims.play('FritzLinks', true);
+            this.fritz.flipX = false;
+            this.fritzLastHorizontalDir = 'left';
+          } else if (dx > 0) {
+            // Spieler ist rechts von Fritz
+            this.fritz.anims.play('FritzRechts', true);
+            this.fritz.flipX = false;
+            this.fritzLastHorizontalDir = 'right';
+          } else {
+            // Fallback: letzte horizontale Richtung
+            if (this.fritzLastHorizontalDir === 'right') {
+              this.fritz.anims.play('FritzRechts', true);
+              this.fritz.flipX = false;
+            } else {
+              this.fritz.anims.play('FritzLinks', true);
+              this.fritz.flipX = false;
+            }
+          }
+        } else {
+          // Idle: Animation der letzten Richtung
+          if (this.fritzLastHorizontalDir === 'right') {
+            this.fritz.anims.play('FritzRechts', true);
+            this.fritz.flipX = false;
+          } else {
+            this.fritz.anims.play('FritzLinks', true);
+            this.fritz.flipX = false;
+          }
+        }
       }
     }
 
