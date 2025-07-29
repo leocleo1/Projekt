@@ -172,7 +172,7 @@ export class HomeLevel extends Phaser.Scene {
     this.add.text(
       this.cameras.main.centerX,
       this.cameras.main.centerY,
-      'Du bist wieder zuhause.\nDanke fürs Spielen!',
+      'Du bist wieder Zuhause.\nDanke fürs Spielen!',
       {
         fontSize: '24px',
         fill: '#ffffff',
