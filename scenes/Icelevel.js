@@ -222,7 +222,7 @@ export class Icelevel extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(10);
       
-    this.healthBar = this.add.rectangle(100, 30, 100, 20, 0xff0000)
+    this.healthBar = this.add.rectangle(100, 30, 100, 20, 0x00ff00)
       .setScrollFactor(0)
       .setDepth(11); 
 
