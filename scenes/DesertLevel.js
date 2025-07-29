@@ -4,17 +4,24 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     preload() {
+        // Hintergrund und Tiles
         this.load.image('desertBackground', 'assets/DesertLevel/Wüstenhintergrund.png');
         this.load.tilemapTiledJSON('desertMap', 'assets/DesertLevel/Wüstenlevel.json');
         this.load.image('Wüstenwelt', 'assets/DesertLevel/Wüstenwelt.png'); //Tileset
+
+        // Spieler und Gegner
         this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
-        this.load.image('star', 'assets/star.png');
         this.load.spritesheet('sandstorm', 'assets/DesertLevel/Sandsturm.png', {
             frameWidth: 32,
             frameHeight: 32
         });
+
+        // Items und Objekte
+        this.load.image('star', 'assets/star.png');
         this.load.image('backpack', 'assets/DesertLevel/Rucksack.png');
         this.load.image('Portal', 'assets/Portal.png');
+
+        //Sounds
         this.load.audio('jumpSound', 'sounds/Jump.wav');
         this.load.audio('hitSound', 'sounds/Hit2.wav');
         this.load.audio('pickupSound', 'sounds/Pickup1.wav');
@@ -25,6 +32,7 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     create() {
+        //Hintergrund und Musik
         if (!this.sound.get('bgMusic')) {
             const music = this.sound.add('bgMusic', {
                 loop: true,
@@ -46,7 +54,7 @@ export class DesertLevel extends Phaser.Scene {
         // Damit der Hintergrund ganz hinten bleibt
         bg.setDepth(-1);
 
-
+        // Map und Tileset
         const map = this.make.tilemap({ key: 'desertMap' });
         const tileset = map.addTilesetImage('Wüstenwelt', 'Wüstenwelt');
         this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
@@ -55,11 +63,6 @@ export class DesertLevel extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
         const platformObjects = map.getObjectLayer('Object Layer 1').objects;
-
-        this.hp = 100;
-        this.isDucking = false;
-        this.invulnerable = false;
-        this.knockbackActive = false;
     
         // Statische Gruppe für Plattformen
         this.platforms = this.physics.add.staticGroup();
@@ -76,6 +79,7 @@ export class DesertLevel extends Phaser.Scene {
           .refreshBody();
         });
 
+        // Leiter 
         const ladderObjects = map.getObjectLayer('Ladder')?.objects || [];
 
         this.ladders = this.physics.add.staticGroup();
@@ -97,6 +101,11 @@ export class DesertLevel extends Phaser.Scene {
                 
       
         // Spieler erstellen
+        this.hp = 100;
+        this.isDucking = false;
+        this.invulnerable = false;
+        this.knockbackActive = false;
+
         this.player = this.physics.add.sprite(0, 770, 'dude');
         this.player.setCollideWorldBounds(false);
         this.physics.add.collider(this.player, this.platforms);
@@ -144,6 +153,8 @@ export class DesertLevel extends Phaser.Scene {
             repeat: -1
         });
 
+        // Sterne 
+
         this.projectiles = this.physics.add.group();
 
         this.stars = this.physics.add.group();
@@ -174,9 +185,11 @@ export class DesertLevel extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
         this.ammo = 0;
         
+        //Eingaben
         this.cursors = this.input.keyboard.createCursorKeys();
         this.spacekey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
+        
+        // HUD
         this.healthBarBackground = this.add.rectangle(100, 30, 104, 24, 0x000000)
             .setScrollFactor(0)
             .setDepth(10);
@@ -196,6 +209,7 @@ export class DesertLevel extends Phaser.Scene {
         }).setScrollFactor(0)
           .setDepth(10);
 
+        //Portal und Wechsel
         this.portal = this.physics.add.sprite(20, 750, 'Portal')
           .setScale( 1.3)
           .setDepth(-1);
@@ -237,6 +251,8 @@ export class DesertLevel extends Phaser.Scene {
             
         }, null, this);
 
+        // Gegner mit Trigger Zones
+
         this.sandstorms = this.physics.add.group();
         this.sandstormSpawned = false;
 
@@ -258,6 +274,7 @@ export class DesertLevel extends Phaser.Scene {
             this.physics.add.overlap(this.player, this.sandstormTriggerZone, this.spawnSandstorm, null, this);
         }
 
+        // Tutorial Text
         this.add.text(50, 750, 'Benutze ← → um dich zu bewegen', { fontSize: '14px', fill: '#000' });
         this.add.text(500, 700, 'Benutze ↑ um zu springen', { fontSize: '14px', fill: '#000' });
         this.add.text(800, 620, 'Benutze ↓ um dich zu ducken', { fontSize: '14px', fill: '#000'});
@@ -279,13 +296,14 @@ export class DesertLevel extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(10);
 
-        
+        // Sounds
         this.jumpSound = this.sound.add('jumpSound');
         this.hitSound = this.sound.add('hitSound');
         this.pickupSound = this.sound.add('pickupSound');
         this.itemPickupSound = this.sound.add('itemPickupSound', { volume: 0.3 });
         this.shootSound = this.sound.add('shootSound');
 
+        // Sandsturm der Respawnt
         this.spawnRecurringSandstorm(); // Startet sofort den ersten
         this.time.addEvent({
             delay: 60000,
@@ -303,6 +321,7 @@ export class DesertLevel extends Phaser.Scene {
     }
 
     update() {
+        //Spieler Bewegung
         const player = this.player;
         const cursors = this.cursors;
         this.onLadder = false;
@@ -391,6 +410,7 @@ export class DesertLevel extends Phaser.Scene {
             this.player.x = maxX;
         }
 
+        // Gegner
         if (this.sandstorm) {
             this.moveSandstormTowardsPlayer();
         }
@@ -416,12 +436,10 @@ export class DesertLevel extends Phaser.Scene {
             const vy = (dy / dist) * speed;
         
             storm.setVelocity(vx, vy);
-        });
-        
-  
-
-          
+        });   
     }
+
+    //Hilfsfunktionen
 
     collectStar(player, star) {
         const x = star.x;

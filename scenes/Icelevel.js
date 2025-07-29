@@ -4,24 +4,25 @@ export class Icelevel extends Phaser.Scene {
   }
   
   preload() {
+    // Hintergrund und Tiles
     this.load.image('Eiswelt', 'assets/IceLevel/Eiswelt.png');
     this.load.tilemapTiledJSON('iceMap', 'assets/IceLevel/Eislevel.json');
+    this.load.image('iceBackground', 'assets/IceLevel/Eishintergrund.png');
+
+    // Spieler und Gegner
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+    this.load.spritesheet('snowman', 'assets/IceLevel/Schneemann.png', { frameWidth: 32, frameHeight: 64 });
+
+    // Objekte
     this.load.image('item', 'assets/IceLevel/Kompass.png');
+    this.load.image('teddy', 'assets/IceLevel/Teddy.png');
     this.load.image('star', 'assets/star.png');
     this.load.image('snowball', 'assets/IceLevel/Schneeball.png');
-    this.load.image('iceBackground', 'assets/IceLevel/Eishintergrund.png');
     this.load.image('schalter', 'assets/IceLevel/schalter.png');
-    this.load.spritesheet('snowman', 'assets/IceLevel/Schneemann.png', {
-      frameWidth:32,
-      frameHeight:64
-    });
-    this.load.spritesheet('eistor', 'assets/IceLevel/eistor.png', {
-      frameWidth: 32,
-      frameHeight: 96
-    });
-    this.load.image('teddy', 'assets/IceLevel/Teddy.png')
     this.load.image('Portal', 'assets/Portal.png');
+    this.load.spritesheet('eistor', 'assets/IceLevel/eistor.png', { frameWidth: 32, frameHeight: 96 });
+
+    // Sounds
     this.load.audio('jumpSound', 'sounds/Jump.wav');
     this.load.audio('hitSound', 'sounds/Hit2.wav');
     this.load.audio('pickupSound', 'sounds/Pickup1.wav');
@@ -31,6 +32,7 @@ export class Icelevel extends Phaser.Scene {
   }
   
   create() {
+    // Hintergrund und Hintergrundmusik
     if (!this.sound.get('bgMusic')) {
       const music = this.sound.add('bgMusic', {
           loop: true,
@@ -48,11 +50,11 @@ export class Icelevel extends Phaser.Scene {
     // Bild auf Fenstergröße skalieren
     bg.setDisplaySize(gameWidth, gameHeight);
       
+    // Tilemaps und Layer
     const map = this.make.tilemap({ key: 'iceMap' });
     const tileset = map.addTilesetImage('Eiswelt', 'Eiswelt');
     this.visualLayer = map.createLayer('Tile Layer 1', tileset, 0, 0); // Nur fürs Aussehen
 
-    
     this.visualLayer.setDepth(0);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -62,7 +64,6 @@ export class Icelevel extends Phaser.Scene {
 
     console.log(map.layers.map(l => l.name));
 
-      
     // Objektlayer "Plattformen" laden
     const platformObjects = map.getObjectLayer('Object Layer 2').objects;
     // Schnee-Zonen (Object Layer "Pulverschnee")
@@ -80,9 +81,6 @@ export class Icelevel extends Phaser.Scene {
       .refreshBody();
     });
 
-    this.hp = 100;
-    this.invulnerable = false;
-
     // Statische Gruppe für Plattformen
     this.platforms = this.physics.add.staticGroup();
   
@@ -97,6 +95,9 @@ export class Icelevel extends Phaser.Scene {
       .setVisible(false) // Unsichtbar – nur Kollision
       .refreshBody();
     });
+
+    this.hp = 100;
+    this.invulnerable = false;
   
     // Spieler erstellen
     this.player = this.physics.add.sprite(0, 570, 'dude');
@@ -111,7 +112,6 @@ export class Icelevel extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
-
 
     this.item = this.physics.add.sprite(16, 83, 'item');
     this.item.setDepth(1);
@@ -171,6 +171,7 @@ export class Icelevel extends Phaser.Scene {
       repeat: 0
     });
 
+    // Gegner (Schneemann)
     this.projectiles = this.physics.add.group();
     this.snowballs = this.physics.add.group();
 
@@ -193,6 +194,7 @@ export class Icelevel extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.snowmen, this.hitBySnowman, null, this);
     this.physics.add.overlap(this.projectiles, this.snowmen, this.hitSnowman, null, this);
 
+    // Sterne
     this.stars = this.physics.add.group();
 
     this.stars.create(173, 596, 'star');
@@ -213,11 +215,12 @@ export class Icelevel extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
     this.ammo = 0;
     this.iceBlockData = [];
-  
+
     // Eingaben
     this.cursors = this.input.keyboard.createCursorKeys();
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-      
+    
+    // HUD
     this.healthBarBackground = this.add.rectangle(100, 30, 104, 24, 0x000000)
       .setScrollFactor(0)
       .setDepth(10);
@@ -258,7 +261,8 @@ export class Icelevel extends Phaser.Scene {
       fill: '#000000'
     }).setScrollFactor(0)
       .setDepth(10);
-
+    
+    // Objekte und Items  
     this.schalter = this.physics.add.staticImage(10 + 6, 244 + 6, 'schalter')
       .setSize(12,12 );
 
@@ -343,6 +347,7 @@ export class Icelevel extends Phaser.Scene {
     // Schneeobjekte (Pulverschnee-Layer) im Vordergrund anzeigen
     this.snowAreas.setDepth(1);
 
+    // Portale und Wechsel
     this.portal = this.physics.add.sprite(20, 560, 'Portal')
     .setScale( 1.3)
     .setDepth(-1);
@@ -391,6 +396,7 @@ export class Icelevel extends Phaser.Scene {
       teddy: false
     };
 
+    // Sounds
     this.jumpSound = this.sound.add('jumpSound');
     this.hitSound = this.sound.add('hitSound');
     this.pickupSound = this.sound.add('pickupSound');
@@ -399,7 +405,7 @@ export class Icelevel extends Phaser.Scene {
   }
   
   update() {
-    this.inSnow = false;
+    // Bewegung Spieler
     this.inSnow = this.physics.overlap(this.player, this.snowAreas);
     const player = this.player;
     const cursors = this.cursors;
@@ -490,8 +496,10 @@ export class Icelevel extends Phaser.Scene {
       this.shoot();
     }
 
+    // Gegner-Logik Schneemann
     this.moveSnowmanTowardsPlayer();
 
+    //Sprung Logik, wenn der Spieler im Pulverschnee ist
     const isOnGround = player.body.blocked.down || this.inSnow;
 
     if (cursors.up.isDown && isOnGround && !this.jumpKeyPressed) {
@@ -530,7 +538,8 @@ export class Icelevel extends Phaser.Scene {
     if (this.player.x > maxX) {
       this.player.x = maxX;
     }
-      
+    
+    // Projektile und Kollision
     this.projectiles.getChildren().forEach(projectile => {
       const tile = this.eislayer.getTileAtWorldXY(projectile.x, projectile.y);
       
@@ -555,6 +564,7 @@ export class Icelevel extends Phaser.Scene {
     }
   }
 
+  //Hilfsmethoden
   collectItem(player, item) {
     const flyIcon = this.add.image(item.x, item.y, 'item')
       .setScale(1)

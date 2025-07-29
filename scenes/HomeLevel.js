@@ -4,19 +4,25 @@ export class HomeLevel extends Phaser.Scene {
   }
 
   preload() {
+    //Hintergrund, Haus und Tileset
     this.load.image('homeBackground', 'assets/HomeLevel/HomeLevelHintergrund.png');
     this.load.image('pilzhaus', 'assets/HomeLevel/Pilzhaus.png');
-    this.load.audio('victorySound', 'sounds/victory.mp3');
     this.load.tilemapTiledJSON('homeMap', 'assets/HomeLevel/Homelevel.json');
     this.load.image('Homewelt', 'assets/HomeLevel/Homewelt.png'); //Tileset
+
+    //Spieler und Objekte
     this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
     this.load.image('portal', 'assets/Portal.png');
+
+    //Sounds
     this.load.audio('bgMusic', 'sounds/backgroundMusic.wav');
+    this.load.audio('victorySound', 'sounds/victory.mp3');
         
 
   }
 
   create() {
+    //Hintergrund und Musik
     if (!this.sound.get('bgMusic')) {
       const music = this.sound.add('bgMusic', {
           loop: true,
@@ -39,6 +45,7 @@ export class HomeLevel extends Phaser.Scene {
     // Damit der Hintergrund ganz hinten bleibt
     bg.setDepth(-1);
 
+    //Haus und Map
     this.pilzhaus = this.physics.add.staticSprite(800, 670, 'pilzhaus');
   
     const map = this.make.tilemap({ key: 'homeMap' });
@@ -104,8 +111,10 @@ export class HomeLevel extends Phaser.Scene {
       repeat: -1
     });
 
+    //Bewegung
     this.cursors = this.input.keyboard.createCursorKeys();
 
+    //Portal und Ende
     this.portal = this.physics.add.sprite(20, 750, 'portal')
           .setScale( 1.3)
           .setDepth(-1);
@@ -117,12 +126,11 @@ export class HomeLevel extends Phaser.Scene {
       volume: 0.01
     });
 
-
-
     this.reachedHouse = false;
   }
 
   update() {
+    //Bewegung
     const player = this.player;
     const cursors = this.cursors;
 
@@ -146,6 +154,7 @@ export class HomeLevel extends Phaser.Scene {
     }
   }
 
+  //Hilfsfunktionen
   reachHouse(player, house) {
     this.reachedHouse = true;
 
