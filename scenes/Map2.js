@@ -17,7 +17,7 @@ export class Map2 extends Phaser.Scene {
     const gameHeight = this.sys.game.config.height;
     startBackground.setDisplaySize(gameWidth, gameHeight);
 
-
+      // Erklärscreen 2 anzeigen
     const E2 = this.add.image(gameWidth / 2, gameHeight / 2, 'E2').setScale(0.9 / ratio);
 
     const weiter = this.add.image(gameWidth - 170, gameHeight - 100, 'Weiter').setScale(0.4 / ratio).setInteractive();

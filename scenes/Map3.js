@@ -11,7 +11,10 @@ export class Map3 extends Phaser.Scene {
   
 
     create() {
+
+    // Erklärscreen 3 anzeigen
     const startBackground = this.add.image(0, 0, 'Startbg').setOrigin(0, 0).setScale(0.9);
+
 
     const ratio = window.devicePixelRatio || 1;
     const gameWidth = this.sys.game.config.width;

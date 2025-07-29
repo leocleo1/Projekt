@@ -18,13 +18,13 @@ export class Map1 extends Phaser.Scene {
     const gameHeight = this.sys.game.config.height;
     startBackground.setDisplaySize(gameWidth, gameHeight);
 
-
+    // Erklärscreen 1 anzeigen
     const E1 = this.add.image(gameWidth / 2, gameHeight / 2, 'E1').setScale(0.9 / ratio);
 
     const weiter = this.add.image(gameWidth - 170, gameHeight - 100, 'Weiter').setScale(0.4 / ratio).setInteractive();
 
       weiter.on('pointerdown', () => {
-        this.scene.start('DesertLevel'); // Start the JungleLevel scene
+        this.scene.start('DesertLevel');
       });
     }
   }

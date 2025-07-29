@@ -4,6 +4,8 @@ export class JungleLevel extends Phaser.Scene {
   }
 
   preload() {
+
+    // Laden der gebrauchten Assets und Bilder
     this.load.image('JungleBackground', 'assets/JungleLevel/JungleBackground.png'); 
     this.load.image('JungleTiles', 'assets/JungleLevel/JungleTiles.png');
     this.load.image('Boden', 'assets/JungleLevel/Boden.png');
@@ -31,7 +33,11 @@ export class JungleLevel extends Phaser.Scene {
   }
 
 
+
+  // Kreieren und Laden der Welt und Anfangskonfiguration
   create() {
+
+    // Hintergrundmusik starten
     if (!this.sound.get('bgMusic')) {
       const music = this.sound.add('bgMusic', {
           loop: true,
@@ -45,9 +51,9 @@ export class JungleLevel extends Phaser.Scene {
     // Bildschirmgröße
     const gameWidth = window.innerWidth
     const gameHeight = window.innerHeight;
-    //const gameHeight = this.sys.game.config.height;
+  
     
-    
+    // Display von Assets möglich machen
     const offsetX = window.innerWidth / 2 - 480;
     const map = this.make.tilemap({ key: 'JungleMap' });
 
@@ -70,17 +76,17 @@ export class JungleLevel extends Phaser.Scene {
     böseBlumenLayer.setCollisionByExclusion([-1]);
     guteBlumenLayer.setCollisionByExclusion([-1]);
 
+
+    // Kameraposition
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.physics.world.setBounds(offsetX, 0, map.widthInPixels, map.heightInPixels);
 
 
 
 
-    // Spieler erstellen
-    //this.player = this.physics.add.sprite(100, map.heightInPixels - 100, 'dude');
+    // Spieler erstellen und Spielereinstellungen
     this.player = this.physics.add.sprite(100, 3120, 'dude');
-    //his.player = this.physics.add.sprite(850, 100, 'dude');
-
+ 
     this.player.setMaxVelocity(200, 500);
     this.player.setDamping(true);
     this.player.body.setDrag(600,0);
@@ -89,7 +95,7 @@ export class JungleLevel extends Phaser.Scene {
 
 
 
-    //Fritz hinzufügen
+    //Fritz (Gegner, ist eine Libelle) hinzufügen
     this.fritz = this.physics.add.sprite(800, 800, 'Fritz');
     this.fritz.setCollideWorldBounds(true);
     this.fritz.setBounce(1, 1);
@@ -97,6 +103,7 @@ export class JungleLevel extends Phaser.Scene {
 
     this.lastHitSoundTime = 0;
 
+    // Kollisionen vom Player
     this.physics.add.collider(this.player, bodenLayer);
     this.physics.add.collider(this.player, jungleLayer);
     this.physics.add.collider(this.player, böseBlumenLayer, () => {
@@ -116,7 +123,7 @@ export class JungleLevel extends Phaser.Scene {
       }
     }, null, this);
 
-
+    //Boost und Leben hinzufügen beim Berühren der guten Blumen
     this.physics.add.collider(this.player, guteBlumenLayer, () => {
       if (!this.jumpBoostActive) {
         this.jumpBoostActive = true;
@@ -136,13 +143,15 @@ export class JungleLevel extends Phaser.Scene {
       }
     }, null, this);
 
+   
+    // Fritz Kollisionen
     this.physics.add.collider(this.fritz, bodenLayer);
     this.physics.add.collider(this.fritz, jungleLayer);
     this.physics.add.collider(this.fritz, böseBlumenLayer);
 
     
 
-    //Blitze
+    //Blitze (schießt Fritz auf den Spieler)
     this.blitze = this.physics.add.group();
 
     this.physics.add.collider(this.blitze, bodenLayer, (blitz) => blitz.destroy(), null, this);
@@ -183,7 +192,7 @@ export class JungleLevel extends Phaser.Scene {
     }).setScrollFactor(0)
       .setDepth(10);
 
-    // Projektile
+    // Projektile (Stern), die Spieler schießen kann
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.projectiles = this.physics.add.group();
 
@@ -197,6 +206,8 @@ export class JungleLevel extends Phaser.Scene {
         }
     });
 
+
+    // Kollider von Sternen
     this.physics.add.overlap(this.projectiles, this.fritz, this.hitFritz, null, this);
 
     this.physics.add.collider(this.projectiles, bodenLayer, (projectile) => projectile.destroy(), null, this);
@@ -226,7 +237,7 @@ export class JungleLevel extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
 
 
-    //Zauberstab
+    //Zauberstab hinzufügen und Mechaniken dafür
     this.zauberstab = this.physics.add.sprite(window.innerWidth / 2 - 480 + 400, 2020, 'Zauberstab');
     this.physics.add.collider(this.zauberstab, jungleLayer);
     this.physics.add.collider(this.zauberstab, bodenLayer);
@@ -239,7 +250,7 @@ export class JungleLevel extends Phaser.Scene {
       .setScrollFactor(0);
 
     
-    // Potion
+    // Potion hinzufügen, wieder dessen Mechanics
     this.potion = this.physics.add.sprite(window.innerWidth / 2 - 480 + 595, 1400, 'Potion');
     this.physics.add.collider(this.potion, jungleLayer);
     this.physics.add.collider(this.potion, bodenLayer);
@@ -254,7 +265,7 @@ export class JungleLevel extends Phaser.Scene {
     
     this.physics.add.overlap(this.player, this.potion, this.collectPotion, null, this);
 
-    //Portal
+    //Portale hinzufügen und nur benutzbar, wenn Potion und Zauberstab eingesammelt
     this.portal = this.physics.add.sprite(window.innerWidth / 2 - 480 + 30, 3120, 'Portal')
     .setScale( 1.3)
     .setDepth(-1);
@@ -285,6 +296,7 @@ export class JungleLevel extends Phaser.Scene {
       .refreshBody();
     });
 
+    // bei Betreten ins nächste Level
     this.physics.add.overlap(this.player, this.portals, () => {
       if (this.hasZauberstab && this.hasPotion) {
         this.nextLevel();
@@ -340,8 +352,8 @@ export class JungleLevel extends Phaser.Scene {
     // Beispiel-Spieler
     
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setZoom(1); // Kamera-Zoom anpassen
-    //this.cameras.main.scrollY = map.heightInPixels - this.cameras.main.height;
+    this.cameras.main.setZoom(1); 
+   
 
     // Eingaben initialisieren
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -394,14 +406,14 @@ export class JungleLevel extends Phaser.Scene {
         this.lastShootDir = { x: 1, y: 0 };
       } else {
         player.setVelocityX(0);
-        player.anims.play('turn');            // Idle-Animation
+        player.anims.play('turn');          
       }
     } else {
       player.setVelocityX(0);
-      player.anims.play('turn');              // Beim Ducken Idle-Animation
+      player.anims.play('turn');           
     }
 
-    // Springen & Double Jump
+    
 
     // Beim Springen & Double Jump:
     const jumpVelocity = this.jumpBoostActive ? -400 : -230; // Boost: höherer Sprung
@@ -417,7 +429,7 @@ export class JungleLevel extends Phaser.Scene {
       this.jumpKeyPressed = false;
     }
 
-    // Zähler zurücksetzen, wenn auf Boden
+    // Zähler zurücksetzen, wenn auf Boden, damit Double Jump nicht unendlich geht
     if (player.body.blocked.down) {
       if (!this.wasOnGround) {
         this.jumpCount = 0;
@@ -515,7 +527,6 @@ export class JungleLevel extends Phaser.Scene {
     const tileLeft = this.bodenLayer.getTileAtWorldXY(playerLeft, playerFeetY);
     const tileRight = this.bodenLayer.getTileAtWorldXY(playerRight, playerFeetY);
 
-    // Timer und Tile-Tracking wie gehabt, aber für beide Tiles:
     if (tileLeft && tileRight) {
       // Prüfe, ob wir noch auf denselben Tiles stehen wie im letzten Frame
       if (
@@ -534,7 +545,6 @@ export class JungleLevel extends Phaser.Scene {
           this.lastDangerTile = null;
         }
       } else {
-        // Neues Tile betreten
         this.dangerTimer = 0;
         this.lastDangerTile = { leftX: tileLeft.x, rightX: tileRight.x, y: tileLeft.y };
       }
@@ -559,14 +569,14 @@ export class JungleLevel extends Phaser.Scene {
 
       const minDist = 64; // 2 Blöcke Abstand
 
-      // Nur Bewegung stoppen, nicht den ganzen Block returnen!
+      // Nur Bewegung stoppen
       if (dist < minDist) {
         this.fritz.setVelocity(0, 0);
       } else {
         let vx, vy;
         const body = this.fritz.body;
 
-        // Wenn Fritz aktuell ausweicht, bleibe in dieser Richtung bis Timer abgelaufen
+        // Wenn Fritz aktuell ausweicht, bleibe in dieser Richtung bis Timer abgelaufen ist, damit es weitergeht
         if (this.fritz.lastEscapeDir && this.fritz.lastEscapeTimer > this.time.now) {
           switch (this.fritz.lastEscapeDir) {
             case 'right': vx = this.fritzSpeed; vy = 0; break;
@@ -590,7 +600,7 @@ export class JungleLevel extends Phaser.Scene {
             this.fritz.lastEscapeDir = vy > 0 ? 'down' : 'up';
             this.fritz.lastEscapeTimer = this.time.now + 3000;
           } else if ((body.blocked.left || body.blocked.right) && (body.blocked.up || body.blocked.down)) {
-            // Komplett eingeklemmt: wähle eine zufällige freie Richtung
+            // Komplett eingeklemmt: zufällige freie Richtung nehmen
             if (!body.blocked.right) {
               vx = this.fritzSpeed; vy = 0; this.fritz.lastEscapeDir = 'right';
             } else if (!body.blocked.left) {
@@ -614,7 +624,7 @@ export class JungleLevel extends Phaser.Scene {
 
         this.fritz.setVelocity(vx, vy);
 
-        // Animationslogik für Fritz
+        // Animationslogik Fritz
         if (vx > 0) {
           this.fritz.anims.play('FritzRechts', true);
           this.fritz.flipX = false;
@@ -636,7 +646,7 @@ export class JungleLevel extends Phaser.Scene {
             this.fritz.flipX = false;
             this.fritzLastHorizontalDir = 'right';
           } else {
-            // Fallback: letzte horizontale Richtung
+            // letzte horizontale Richtung
             if (this.fritzLastHorizontalDir === 'right') {
               this.fritz.anims.play('FritzRechts', true);
               this.fritz.flipX = false;
@@ -646,7 +656,7 @@ export class JungleLevel extends Phaser.Scene {
             }
           }
         } else {
-          // Idle: Animation der letzten Richtung
+          // Animation der letzten Richtung
           if (this.fritzLastHorizontalDir === 'right') {
             this.fritz.anims.play('FritzRechts', true);
             this.fritz.flipX = false;
@@ -663,6 +673,8 @@ export class JungleLevel extends Phaser.Scene {
     }
   }
 
+
+  // healthbar anzeigen und aktualisieren
   updateHealthBar() {
     this.healthBar.width = Math.max(0, this.hp);
 
@@ -675,6 +687,8 @@ export class JungleLevel extends Phaser.Scene {
     }
   }
 
+
+  //Blitze schießen möglich
   shootBlitz() {
     if (!this.fritz.active || !this.player.active) return;
     const blitz = this.blitze.create(this.fritz.x, this.fritz.y, 'Blitz');
@@ -692,6 +706,7 @@ export class JungleLevel extends Phaser.Scene {
     });
   }
 
+  // Stern einsammeln möglich
   collectStar(player, star) {
     const x = star.x;
     const y = star.y;
@@ -710,7 +725,7 @@ export class JungleLevel extends Phaser.Scene {
     this.ammoText.setText(`: ${this.ammo}`);
   }
 
-    
+  // Spieler kann Sterne schießen
   shoot() {
   const star = this.projectiles.create(this.player.x, this.player.y, 'star');
   star.setCollideWorldBounds(true);
@@ -728,7 +743,7 @@ export class JungleLevel extends Phaser.Scene {
 }
 
   
-
+// Fritz stirbt, wenn er getroffen wird
  hitFritz(projectile, fritz) {
     projectile.destroy();
   fritz.destroy();
@@ -736,7 +751,7 @@ export class JungleLevel extends Phaser.Scene {
 
 
 
-
+// Zauberstab einsammel
  collectZauberstab(player, zauberstab) {
     const flyIcon = this.add.image(zauberstab.x, zauberstab.y, 'Zauberstab')
       .setScale(1)
@@ -760,6 +775,7 @@ export class JungleLevel extends Phaser.Scene {
     console.log("Du hast den Zauberstab gefunden!");
   }
 
+  // Potion einsammeln
   collectPotion(player, potion) {
     const flyIcon = this.add.image(potion.x, potion.y, 'Potion')
       .setScale(1)
@@ -783,6 +799,8 @@ export class JungleLevel extends Phaser.Scene {
     console.log("Du hast den Zauberstab gefunden!");
   }
 
+
+  // ins nächste Level gehen
   nextLevel() {
     console.log("Portal betreten, du gehst nach Hause!");
     this.scene.start('HomeLevel');
