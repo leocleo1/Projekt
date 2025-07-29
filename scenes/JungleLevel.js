@@ -95,7 +95,7 @@ export class JungleLevel extends Phaser.Scene {
     this.fritz.setBounce(1, 1);
     this.fritzSpeed = 100;
 
-
+    this.lastHitSoundTime = 0;
 
     this.physics.add.collider(this.player, bodenLayer);
     this.physics.add.collider(this.player, jungleLayer);
@@ -103,7 +103,11 @@ export class JungleLevel extends Phaser.Scene {
       // Schaden zufügen, aber nur einmal pro Kontakt
       if (!this.player.isOnBöseBlume) {
         this.hp -= 1;
-        this.hitSound.play();
+        const now = this.time.now;
+        if (now - this.lastHitSoundTime > 500) {
+          this.hitSound.play();
+          this.lastHitSoundTime = now;
+        }
         this.updateHealthBar();
         this.player.isOnBöseBlume = true;
         // Optional: Feedback, z.B. rot färben
